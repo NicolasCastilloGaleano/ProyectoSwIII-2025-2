@@ -1,0 +1,52 @@
+import type { User } from "@/apps/users/service/users";
+import type { StateCreator } from "zustand";
+
+export interface Auth {
+  currentUser: User | null;
+  isLoading: boolean;
+  token: string | null;
+}
+
+interface AuthState {
+  auth: Auth;
+  clearSession: () => void;
+  setCurrentUser: (currentUser: User) => void;
+  setIsAuthLoading: (isLoading: boolean) => void;
+  setToken: (token: string | null) => void;
+}
+
+export interface AuthSlice {
+  authState: AuthState;
+}
+
+const initialState: Auth = {
+  currentUser: null,
+  isLoading: false,
+  token: null,
+};
+
+const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
+  authState: {
+    auth: initialState,
+
+    setCurrentUser: (currentUser) => {
+      set((state) => ({ authState: { ...state.authState, currentUser } }));
+    },
+
+    setIsAuthLoading: (isLoading) => {
+      set((state) => ({ authState: { ...state.authState, isLoading } }));
+    },
+
+    setToken: (token) => {
+      set((state) => ({ authState: { ...state.authState, token } }));
+    },
+
+    clearSession: () => {
+      set((state) => ({
+        authState: { ...state.authState, auth: initialState },
+      }));
+    },
+  },
+});
+
+export default createAuthSlice;
