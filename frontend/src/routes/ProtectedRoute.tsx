@@ -3,13 +3,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import { PermissionLoading } from "./PermissionLoading";
 
-type PermCheck = {
-  scope?: string; // permiso único requerido
-  anyOf?: string[]; // al menos uno
-  allOf?: string[]; // todos
-};
-
-interface ProtectedRouteProps extends PermCheck {
+interface ProtectedRouteProps {
   children: React.ReactNode;
   redirectTo?: string;
   loadingComponent?: React.ReactNode;
@@ -20,7 +14,6 @@ interface ProtectedRouteProps extends PermCheck {
  * Guard unificado de rutas:
  * - Lee token y currentUser desde Zustand (auth slice)
  * - Lee permisos y helpers desde Permissions slice
- * - Soporta scope único, anyOf o allOf
  * - Muestra loading mientras se cargan permisos
  */
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({

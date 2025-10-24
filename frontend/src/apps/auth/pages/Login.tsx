@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import * as yup from "yup";
-import { login } from "../service/auth";
+import { login } from "../services/auth";
 
 const loginSchema = yup.object({
   email: yup.string().email("Correo inválido").required("Correo requerido"),
@@ -59,7 +59,7 @@ const Login = () => {
   };
 
   return (
-    <section className="flex min-h-[100vh] items-center justify-center bg-gray-50 p-4">
+    <section className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <form
         onSubmit={handleSubmit(onSubmit, onInvalid)}
         className="mx-auto flex w-full max-w-md flex-col gap-6 rounded-lg bg-white p-6 shadow-md"

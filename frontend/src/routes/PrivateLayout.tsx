@@ -1,90 +1,66 @@
-// import { logout } from "@/apps/auth/service/auth";
-// import SOFTWARE_THEME from "@/config/theme";
-// import { getUserByToken } from "@/services/authService/authService";
+// import { logout } from "@/apps/auth/services/auth";
+// import { getUserByToken } from "@/apps/auth/services/authService";
+import Header from "@/components/layouts/header/Header";
+import TabBar from "@/components/layouts/header/TabBar";
 // import useStore from "@/store/useStore";
-// import { useEffect } from "react";
-// import { Outlet, useNavigate } from "react-router-dom";
-// import GlobalSnackbar from "../components/system/GlobalSnackbar";
+// import { useCallback, useEffect } from "react";
+import { Outlet } from "react-router-dom";
+import GlobalSnackbar from "../components/system/GlobalSnackbar";
 // import { PUBLICROUTES } from "./public.routes";
 
-// const PrivateLayout = () => {
-//   const { isSidebarOpen } = useStore((store) => store.screen);
-//   const { token } = useStore((store) => store.authState.auth);
-//   const setCurrentUser = useStore((store) => store.authState.setCurrentUser);
-//   const setIsSidebarOpen = useStore((store) => store.setIsSidebarOpen);
-//   const setScreenSize = useStore((store) => store.setScreenSize);
-//   const showSnackbar = useStore((state) => state.showSnackbar);
+const PrivateLayout = () => {
+  // const { token } = useStore((store) => store.authState.auth);
+  // const setCurrentUser = useStore((store) => store.authState.setCurrentUser);
+  // const showSnackbar = useStore((state) => state.showSnackbar);
 
-//   const navigate = useNavigate();
+  // const navigate = useNavigate();
 
-//   useEffect(() => {
-//     const handleResize = () => {
-//       setScreenSize(window.innerWidth);
-//       if (window.innerWidth <= 768) {
-//         setIsSidebarOpen(false);
-//       }
-//     };
+  // const getUser = useCallback(async () => {
+  //   const res = await getUserByToken();
 
-//     window.addEventListener("resize", handleResize);
-//     handleResize();
+  //   if (!res.success) {
+  //     showSnackbar(res.error, "error");
 
-//     return () => window.removeEventListener("resize", handleResize);
-//   }, []);
+  //     if (
+  //       typeof res.error === "string" &&
+  //       res.error
+  //         .trim()
+  //         .toLowerCase()
+  //         .includes("error inesperado con la sesión")
+  //     ) {
+  //       try {
+  //         await logout();
+  //       } finally {
+  //         navigate(PUBLICROUTES.LOGIN, { replace: true });
+  //       }
+  //     }
+  //     return;
+  //   }
 
-//   const getUser = async () => {
-//     const res = await getUserByToken();
-//     if (!res.success) {
-//       showSnackbar(res.error, "error");
-//       if (
-//         typeof res.error === "string" &&
-//         res.error
-//           .trim()
-//           .toLowerCase()
-//           .includes("error inesperado con la sesión")
-//       ) {
-//         try {
-//           await logout();
-//         } finally {
-//           navigate(PUBLICROUTES.LOGIN, { replace: true });
-//         }
-//       }
-//       return;
-//     }
-//     setCurrentUser(res.data);
-//   };
+  //   setCurrentUser(res.data);
+  // }, [navigate, setCurrentUser, showSnackbar]);
 
-//   useEffect(() => {
-//     getUser();
-//   }, [token]);
+  // useEffect(() => {
+  //   getUser();
+  // }, [token, getUser]);
 
-//   return (
-//     <div className="relative flex">
-//       <InitParameters />
+  return (
+    <div className="relative flex">
+      <GlobalSnackbar />
 
-//       <GlobalSnackbar />
+      <div className={`min-h-screen w-full transition-all duration-300`}>
+        <Header />
 
-//       <div
-//         className={`fixed z-10 h-screen transition-all duration-300 ${isSidebarOpen ? "w-60" : "w-0 md:w-20"}`}
-//         style={{ backgroundColor: SOFTWARE_THEME.primary }}
-//       >
-//         <Sidebar />
-//       </div>
+        <div className={`flex min-h-[calc(100vh-112px)] w-full justify-center`}>
+          <section className="h-[calc(100vh-112px)] w-full max-w-[1464px] overflow-y-auto py-4">
+            <Outlet />
+          </section>
+        </div>
 
-//       <div
-//         className={`min-h-screen w-full transition-all duration-300 ${isSidebarOpen ? "md:pl-60" : "md:pl-20"}`}
-//       >
-//         <Header />
+        <TabBar />
+      </div>
+    </div>
+  );
+};
 
-//         <div
-//           className={`flex min-h-[calc(100vh_-_40px)] w-full justify-center`}
-//         >
-//           <section className="h-[calc(100vh-40px)] w-full max-w-[1464px] overflow-y-auto py-4">
-//             <Outlet />
-//           </section>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default PrivateLayout;
+export default PrivateLayout;

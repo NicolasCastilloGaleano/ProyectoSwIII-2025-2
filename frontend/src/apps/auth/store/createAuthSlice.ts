@@ -1,4 +1,4 @@
-import type { User } from "@/apps/users/service/users";
+import type { User } from "@/apps/users/services/users.interfaces";
 import type { StateCreator } from "zustand";
 
 export interface Auth {

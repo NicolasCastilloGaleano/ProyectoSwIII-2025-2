@@ -1,8 +1,14 @@
 import { Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { LoadingRoute, PublicLayout, renderRoutes } from "./routes";
-import { PublicRoutes } from "./routes/public.routes";
-import { PublicRouteGuard } from "./routes/RouteGuard";
+import {
+  LoadingRoute,
+  PrivateLayout,
+  PrivateRoutes,
+  PublicLayout,
+  PublicRoutes,
+  renderRoutes,
+} from "./routes";
+import { PrivateRouteGuard, PublicRouteGuard } from "./routes/RouteGuard";
 
 import { ThemeProvider } from "@mui/material";
 import theme from "./theme";
@@ -21,11 +27,11 @@ function App() {
             </Route>
 
             {/* Rutas privadas */}
-            {/* <Route element={<PrivateRouteGuard />}>
+            <Route element={<PrivateRouteGuard />}>
               <Route element={<PrivateLayout />}>
                 {renderRoutes(PrivateRoutes)}
               </Route>
-            </Route> */}
+            </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

@@ -8,7 +8,7 @@ const PublicLayout: React.FC = () => {
     <div className="flex min-h-screen flex-col">
       <GlobalSnackbar />
 
-      <main className="flex-grow">
+      <main className="grow">
         <Outlet />
       </main>
     </div>

@@ -12,7 +12,7 @@ const PrivateRouteGuard: React.FC = () => {
   useEffect(() => {
     const getToken = async () => {
       // const token = await getSessionIdToken();
-      const token = "";
+      const token = "123";
 
       useStore.getState().authState.setToken(token || null);
       setToken(token || undefined);
