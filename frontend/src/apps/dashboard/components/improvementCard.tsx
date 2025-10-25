@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography';
 
 export default function ImprovementCard() {
     return (
-        <Card sx={{ maxWidth: 345 }}>
+        <Card className="transition delay-900 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-violet-500 justify-items-end" sx={{ maxWidth: 345 }}>
             <CardMedia
                 component="img"
                 alt="green iguana"

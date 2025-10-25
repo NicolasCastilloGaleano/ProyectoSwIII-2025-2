@@ -18,7 +18,7 @@ export default function DashboardPage() {
     const year = today.getFullYear();
     const month = today.getMonth();
     const moods = [
-        { id: "feliz", label: "Feliz", icon: <SentimentVerySatisfied className="text-yellow-400" /> },
+        { id: "feliz", label: "Feliz", icon: <SentimentVerySatisfied className="text-yellow-400 " /> },
         { id: "motivado", label: "Motivado", icon: <EmojiEmotions className="text-orange-400" /> },
         { id: "tranquilo", label: "Tranquilo", icon: <SelfImprovement className="text-green-400" /> },
         { id: "cansado", label: "Cansado", icon: <Hotel className="text-blue-400" /> },
@@ -50,7 +50,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-7 gap-2 text-center mt-6">
             {["D", "L", "M", "M", "J", "V", "S"].map((d) => (
-                <div key={d} className="font-semibold text-sm text-gray-500">
+                <div key={d} className="font-semibold text-sm text-gray-500 ">
                     {d}
                 </div>
             ))}
@@ -69,7 +69,7 @@ export default function DashboardPage() {
                 return (
                     <div
                         key={day}
-                        className={`border rounded-xl p-2 flex flex-col items-center justify-center h-20
+                        className={`border rounded-xl p-2 flex flex-col items-center justify-center h-20 transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-violet-500 justify-items-end
                         ${isToday ? "border-blue-400 bg-blue-50" : "border-gray-200"}`}
                     >
                         <span className="text-sm font-semibold text-gray-600">{day}</span>
@@ -88,12 +88,12 @@ export default function DashboardPage() {
                 <p className="text-gray-600 mb-6">Selecciona cómo te sientes hoy y revisa tu historial emocional.</p>
 
                 {/* Bloque de selección de moods */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8 ">
                     {moods.map((mood) => (
                         <button
                             key={mood.id}
                             onClick={() => handleSelectMood(mood.id)}
-                            className={`flex flex-col items-center p-4 rounded-xl border transition-all hover:shadow-sm
+                            className={`flex flex-col items-center p-4 rounded-xl border transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 hover:bg-violet-500 justify-items-end hover:shadow-sm
               ${selectedMood === mood.id ? "bg-blue-50 border-blue-400" : "border-gray-200 hover:bg-gray-50"}`}
                         >
                             {mood.icon}
