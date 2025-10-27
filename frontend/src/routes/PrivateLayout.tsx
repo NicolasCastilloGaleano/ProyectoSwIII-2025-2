@@ -1,7 +1,7 @@
 // import { logout } from "@/apps/auth/services/auth";
 // import { getUserByToken } from "@/apps/auth/services/authService";
 import Header from "@/components/layouts/header/Header";
-import TabBar from "@/components/layouts/header/TabBar";
+// import TabBar from "@/components/layouts/header/TabBar";
 // import useStore from "@/store/useStore";
 // import { useCallback, useEffect } from "react";
 import { Outlet } from "react-router-dom";
@@ -52,12 +52,12 @@ const PrivateLayout = () => {
         <Header />
 
         <div className={`flex min-h-[calc(100vh-112px)] w-full justify-center`}>
-          <section className="h-[calc(100vh-112px)] w-full max-w-[1464px] overflow-y-auto py-4">
+          <section className="h-[calc(100vh-112px)] w-full max-w-[1464px]  ">
             <Outlet />
           </section>
         </div>
 
-        <TabBar />
+        {/* <TabBar /> */}
       </div>
     </div>
   );
