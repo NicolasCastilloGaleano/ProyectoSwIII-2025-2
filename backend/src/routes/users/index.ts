@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as Ctrl from "./users.controller";
-import { verifyFirebaseJwt } from "@middlewares/verifyFirebaseJwt";
+import verifyFirebaseJwt from '../../middlewares/verifyFirebaseJwt';
 
 const router = Router();
 
