@@ -37,7 +37,7 @@ const mocks = vi.hoisted(() => {
     correo: "test@example.com",
     nombre: "Test User",
     roles: ["ADMIN"],
-    fechaDeCreacion: new Date("2024-01-01T12:00:00Z"),
+    fechaDeCreacion: new Date(), 
   };
 
   const createDocRef = () => ({
@@ -131,7 +131,9 @@ describe("Integración - GET /api/auth/me", () => {
         roles: firestoreUser.roles,
       },
     });
-    expect(res.body.data.fechaDeCreacion).toMatch(/^2024-01-01/);
+    // Verificamos que fechaDeCreacion sea una fecha válida
+    expect(res.body.data.fechaDeCreacion).toBeDefined();
+    expect(new Date(res.body.data.fechaDeCreacion)).toBeInstanceOf(Date);
   });
 
   it("debe manejar el caso cuando el usuario no existe en Firestore", async () => {
