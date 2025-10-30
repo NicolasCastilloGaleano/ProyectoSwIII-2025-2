@@ -18,7 +18,7 @@ export interface MoodEntry {
 }
 
 export interface MoodsState {
-  moodHistory: Record<string, string[]>; // { "2025-10-26": ["happy", "tired", "calm"] }
+  moodHistory: Record<string, string[]>;
   addMoodForToday: (moodId: string) => void;
   getMoodsForDate: (date: string) => string[];
 }
@@ -26,7 +26,7 @@ export interface MoodsState {
 export const createMoodsSlice: StateCreator<MoodsState> = (set, get) => ({
   moodHistory: {},
 
-  addMoodForToday: (moodId) => {
+  addMoodForToday: (moodId: string) => {
     const today = new Date().toLocaleDateString("en-CA");
     const current = get().moodHistory[today] || [];
 
@@ -42,6 +42,24 @@ export const createMoodsSlice: StateCreator<MoodsState> = (set, get) => ({
 
     // solo para depuración
     console.log("Nuevo estado de moods:", updated);
+  },
+
+  removeMoodForToday: (moodId: string) => {
+    const today = new Date().toLocaleDateString("en-CA");
+    const current = get().moodHistory[today] || [];
+
+    if (!current.includes(moodId)) {
+      console.warn(`El mood ${moodId} no está registrado para hoy.`);
+      return;
+    }
+
+    const updated = {
+      ...get().moodHistory,
+      [today]: current.filter((id) => id !== moodId),
+    };
+
+    set({ moodHistory: updated });
+    console.log(`Mood ${moodId} eliminado. Nuevo estado:`, updated);
   },
 
   getMoodsForDate: (date) => {

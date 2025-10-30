@@ -1,22 +1,34 @@
 import { moods } from "../data/moods";
 import { SideBar } from "../components/sideBar";
-import useStore from "../../../store/useStore"; // el store global que integra moodsSlice
+import useStore from "../../../store/useStore";
+import { useState } from "react";
 
 export default function HomePage() {
+    const [selectedMood, setSelectedMood] = useState<string | null>(null);
+
     const today = new Date();
     const year = today.getFullYear();
     const month = today.getMonth();
 
-    // obtenemos los métodos del store global
-    const { addMoodForToday, getMoodsForDate, moodHistory } = useStore();
+    const { addMoodForToday, removeMoodForToday, getMoodsForDate } = useStore();
 
-    // cálculo del calendario
+    // calendario
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const firstDay = new Date(year, month, 1).getDay();
     const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
+    // Si el mood existe lo elimina, si no existe lo adiciona
     const handleSelectMood = (moodId: string) => {
-        addMoodForToday(moodId);
+        const todayKey = new Date().toLocaleDateString("en-CA");
+        const todayMoods = getMoodsForDate(todayKey);
+
+        if (todayMoods.includes(moodId)) {
+            removeMoodForToday(moodId);
+            setSelectedMood(null);
+        } else {
+            addMoodForToday(moodId);
+            setSelectedMood(moodId);
+        }
     };
 
     const renderCalendar = () => (
@@ -27,23 +39,21 @@ export default function HomePage() {
                 </div>
             ))}
 
-            {/* Espacios vacíos antes del primer día */}
+            {/* espacios vacíos antes del primer día */}
             {Array.from({ length: firstDay }).map((_, i) => (
                 <div key={`blank-${i}`} />
             ))}
 
-            {/* Días del mes */}
+            {/* días */}
             {daysArray.map((day) => {
                 const date = new Date(year, month, day);
                 const dateKey = date.toLocaleDateString("en-CA");
                 const moodIds = getMoodsForDate(dateKey);
+                const moodIcons = moodIds
+                    .map((id) => moods.find((m) => m.id === id)?.icon)
+                    .filter(Boolean);
 
-                // obtener íconos de esos moods
-                const moodIcons = moodIds.map((id) => moods.find((m) => m.id === id)?.icon);
-
-                // restricción: solo día actual es seleccionable
-                const isToday = dateKey === today.toLocaleDateString("en-CA");
-                const isPastOrFuture = date < new Date(today.setHours(0, 0, 0, 0)) || date > new Date();
+                const isToday = dateKey === new Date().toLocaleDateString("en-CA");
 
                 return (
                     <div
@@ -53,9 +63,11 @@ export default function HomePage() {
                     >
                         <span className="text-sm font-semibold text-gray-600">{day}</span>
                         <div className="mt-1 flex space-x-1">
-                            {moodIcons.length > 0
-                                ? moodIcons
-                                : <span className="text-gray-300">–</span>}
+                            {moodIcons.length > 0 ? (
+                                moodIcons
+                            ) : (
+                                <span className="text-gray-300">–</span>
+                            )}
                         </div>
                     </div>
                 );
@@ -68,30 +80,32 @@ export default function HomePage() {
             <SideBar />
             <div className="w-screen p-4">
                 <h1 className="text-2xl font-bold text-gray-800 mb-2">Bienvenido</h1>
-                <p className="text-gray-600 mb-6">
-                    Selecciona cómo te sientes hoy.
-                </p>
+                <p className="text-gray-600 mb-6">Selecciona cómo te sientes hoy.</p>
 
-                {/* Selección de moods */}
+                {/* selección de moods */}
                 <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-8">
                     {moods.map((mood) => (
                         <button
                             key={mood.id}
                             onClick={() => handleSelectMood(mood.id)}
-                            className="flex flex-col items-center p-2  rounded-xl border hover:-translate-y-1 hover:scale-110 transition-all"
+                            className={`flex flex-col items-center p-2 rounded-xl border hover:-translate-y-1 hover:scale-110 transition-all ${getMoodsForDate(new Date().toLocaleDateString("en-CA")).includes(
+                                mood.id
+                            )
+                                ? "bg-violet-600 text-white"
+                                : "bg-white text-gray-700"
+                                }`}
                         >
                             {mood.icon}
-                            <span className="mt-2 text-sm font-medium text-gray-700">
-                                {mood.label}
-                            </span>
+                            <span className="mt-2 text-sm font-medium">{mood.label}</span>
                         </button>
                     ))}
                 </div>
 
-                {/* Calendario */}
+                {/* calendario */}
                 <div className="bg-white shadow-md rounded-2xl p-6">
                     <h2 className="text-lg font-semibold text-gray-700 mb-4">
-                        Historial emocional - {today.toLocaleString("es-ES", { month: "long", year: "numeric" })}
+                        Historial emocional -{" "}
+                        {today.toLocaleString("es-ES", { month: "long", year: "numeric" })}
                     </h2>
                     {renderCalendar()}
                 </div>
