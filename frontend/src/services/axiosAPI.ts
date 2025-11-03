@@ -2,7 +2,7 @@ import { getSessionIdToken } from "@/apps/auth/services/auth";
 import axios, { AxiosError } from "axios";
 import axiosRetry from "axios-retry";
 
-export const CURRENT_API_URL = import.meta.env.VITE_API_URL;
+export const CURRENT_API_URL = import.meta.env.VITE_BACKEND_API_URL;
 
 const axiosAPI = axios.create({
   baseURL: CURRENT_API_URL,
