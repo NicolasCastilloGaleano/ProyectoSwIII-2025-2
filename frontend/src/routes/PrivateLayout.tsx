@@ -52,12 +52,12 @@ const PrivateLayout = () => {
         <Header />
 
         <div className={`flex min-h-[calc(100vh-112px)] w-full justify-center`}>
-          <section className="h-[calc(100vh-112px)] w-full max-w-[1464px] overflow-y-auto py-4">
+          <section className="h-[calc(100vh-112px)] w-full max-w-[1464px]  ">
             <Outlet />
           </section>
         </div>
 
-        <TabBar />
+        {/* <TabBar /> */}
       </div>
     </div>
   );
