@@ -1,6 +1,5 @@
 import admin, { db } from "@config/firebase"; // <-- ajusta la ruta si es necesario
-import { COLLECTIONS } from "@data/constants";
-import { DayMoods, UpsertDayMoodDto } from "./moods.interface";
+import { UpsertDayMoodDto } from "./moods.interface";
 
 const { FieldValue, Timestamp } = admin.firestore;
 
@@ -12,11 +11,14 @@ export class HttpError extends Error {
   }
 }
 
-type MoodDayEntry = Array<{
-  moodId: string;
-  note?: string | null;
-  at?: FirebaseFirestore.Timestamp;
-}>;
+type MoodDayEntry = Record<
+  string,
+  Array<{
+    moodId: string;
+    note?: string | null;
+    at?: FirebaseFirestore.Timestamp;
+  }>
+>;
 type MonthDoc = {
   uid: string;
   year: number; // 2025
@@ -110,13 +112,15 @@ export async function upsertDay(
           year,
           month,
           days: {
-            [day]: [
-              {
-                moodId: body.moodId.trim(),
-                note: body.note ?? null,
-                at: atTs,
-              },
-            ],
+            [day]: {
+              moods: [
+                {
+                  moodId: body.moodId.trim(),
+                  note: body.note ?? null,
+                  at: atTs,
+                },
+              ],
+            },
           },
           createdAt: FieldValue.serverTimestamp() as any,
           updatedAt: FieldValue.serverTimestamp() as any,
@@ -140,11 +144,7 @@ export async function upsertDay(
       // Document exists, check current day's moods (ensure array)
       const currentDay = currentData?.days?.[day] as any;
       const currentMoods = Array.isArray(currentDay?.moods)
-        ? (currentDay.moods as Array<{
-            moodId: string;
-            note?: string | null;
-            at?: FirebaseFirestore.Timestamp;
-          }>)
+        ? (currentDay.moods as Array<MoodDayEntry>)
         : [];
 
       // Verify mood limit
@@ -249,32 +249,36 @@ export const deleteDayMood = async (
   day: string,
   moodId: string,
 ): Promise<void> => {
-  const date = `${yyyymm}-${day}`;
-  const ref = db
-    .collection(COLLECTIONS.USERS)
-    .doc(userId)
-    .collection("moods")
-    .doc(date);
+  const ref = monthRef(userId, yyyymm);
 
-  const doc = await ref.get();
-  if (!doc.exists) {
-    throw new Error("Mood not found");
-  }
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) {
+      throw new Error("Month not found");
+    }
 
-  const data = doc.data() as DayMoods;
-  const moodIndex = data.moods.findIndex((m) => m.id === moodId);
+    const data = snap.data() as MonthDoc;
+    const entry = data.days?.[day] as MoodDayEntry | undefined;
+    const moodsArr = Array.isArray(entry?.moods) ? entry!.moods : [];
 
-  if (moodIndex === -1) {
-    throw new Error("Specific mood not found");
-  }
+    const moodIndex = moodsArr.findIndex((m) => m.moodId === moodId);
+    if (moodIndex === -1) {
+      throw new Error("Specific mood not found");
+    }
 
-  // Remove the specific mood
-  data.moods.splice(moodIndex, 1);
+    const newMoods = moodsArr.slice();
+    newMoods.splice(moodIndex, 1);
 
-  // If no moods left, delete the document, otherwise update it
-  if (data.moods.length === 0) {
-    await ref.delete();
-  } else {
-    await ref.set(data);
-  }
+    if (newMoods.length === 0) {
+      tx.update(ref, {
+        [`days.${day}`]: FieldValue.delete(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    } else {
+      tx.update(ref, {
+        [`days.${day}`]: { moods: newMoods },
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
+  });
 };
