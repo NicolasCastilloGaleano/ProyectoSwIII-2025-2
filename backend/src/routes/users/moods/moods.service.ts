@@ -89,9 +89,8 @@ export async function upsertDay(
   const ref = monthRef(uid, yyyymm);
   // Use a concrete Timestamp for nested fields (arrays),
   // since FieldValue.serverTimestamp() is not allowed inside arrays.
-  const atTs = body.at
-    ? Timestamp.fromDate(new Date(body.at))
-    : Timestamp.now();
+  const toTimestamp = (at?: string) =>
+    at ? Timestamp.fromDate(new Date(at)) : Timestamp.now();
 
   try {
     return await db.runTransaction(async (tx) => {
@@ -113,13 +112,7 @@ export async function upsertDay(
           month,
           days: {
             [day]: {
-              moods: [
-                {
-                  moodId: body.moodId.trim(),
-                  note: body.note ?? null,
-                  at: atTs,
-                },
-              ],
+              moods: body.moods,
             },
           },
           createdAt: FieldValue.serverTimestamp() as any,
@@ -132,43 +125,26 @@ export async function upsertDay(
         return {
           monthId: yyyymm,
           day,
-          saved: {
-            moodId: body.moodId,
-            note: body.note ?? null,
-            atClient: body.at ?? new Date().toISOString(),
-          },
+          saved: body.moods,
           ok: true,
         };
       }
 
       // Document exists, check current day's moods (ensure array)
       const currentDay = currentData?.days?.[day] as any;
-      const currentMoods = Array.isArray(currentDay?.moods)
-        ? (currentDay.moods as Array<MoodDayEntry>)
-        : [];
-
+      const newMoods = Array.isArray(body.moods) ? body.moods : [];
       // Verify mood limit
-      if (currentMoods.length >= 3) {
+      if (newMoods.length > 3) {
         throw new HttpError(
           400,
           "Maximum number of emotions (3) reached for this day",
         );
       }
 
-      // Add new mood
-      const updatedMoods = [
-        ...currentMoods,
-        {
-          moodId: body.moodId.trim(),
-          note: body.note ?? null,
-          at: atTs,
-        },
-      ];
-
       // Update document
       tx.update(ref, {
         [`days.${day}`]: {
-          moods: updatedMoods,
+          moods: newMoods,
         },
         updatedAt: FieldValue.serverTimestamp(),
         // Ensure base fields are consistent
@@ -180,11 +156,7 @@ export async function upsertDay(
       return {
         monthId: yyyymm,
         day,
-        saved: {
-          moodId: body.moodId,
-          note: body.note ?? null,
-          atClient: body.at ?? new Date().toISOString(),
-        },
+        saved: newMoods,
         ok: true,
       };
     });
