@@ -1,3 +1,4 @@
+import { getSessionIdToken } from "@/apps/auth/services/auth";
 import useStore from "@/store/useStore";
 import React, { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
@@ -11,8 +12,8 @@ const PrivateRouteGuard: React.FC = () => {
 
   useEffect(() => {
     const getToken = async () => {
-      // const token = await getSessionIdToken();
-      const token = "123";
+      const token = await getSessionIdToken();
+      // const token = "123";
 
       useStore.getState().authState.setToken(token || null);
       setToken(token || undefined);

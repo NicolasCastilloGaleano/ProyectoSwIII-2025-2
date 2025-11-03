@@ -42,7 +42,7 @@ const Login = () => {
     setIsRequestLoading(true);
     try {
       await login(data.email, data.password);
-      navigate(PUBLICROUTES.DASHBOARD)
+      navigate(PRIVATEROUTES.HOMEPAGE)
       //navigate(PRIVATEROUTES.USERS_LIST);
     } catch (error) {
       showSnackbar(

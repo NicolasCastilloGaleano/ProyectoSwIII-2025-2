@@ -3,12 +3,11 @@ import type { User } from "@/apps/users/services/users.interfaces";
 import { axiosAPI } from "@/services/axiosAPI";
 import type { APIResponse, SafeResponse } from "@/services/common.interface";
 
-const AUTH_ENDPOINT = "/authService";
+const AUTH_ENDPOINT = "/auth";
 
 export const getUserByToken = async (): Promise<SafeResponse<User>> => {
   try {
     const res = await axiosAPI.get<APIResponse<User>>(`${AUTH_ENDPOINT}/me`);
-
     return {
       success: true,
       data: res.data.data,

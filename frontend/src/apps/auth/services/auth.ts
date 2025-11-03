@@ -6,8 +6,9 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
+import { getUserByToken } from "./authService";
 
-// Login: retorna token y actualiza Zustand
+// Login: retorna token y actualiza Zustand con token y usuario
 export const login = async (
   email: string,
   password: string,
@@ -18,6 +19,14 @@ export const login = async (
 
     const token = await user.getIdToken();
     useStore.getState().authState.setToken(token);
+
+    // Obtener y guardar datos del usuario
+    const userResponse = await getUserByToken();
+    console.log("Token:", token);
+    if (userResponse.success) {
+      useStore.getState().authState.setCurrentUser(userResponse.data);
+    }
+
     return token;
   } catch (error: any) {
     console.log(error);
