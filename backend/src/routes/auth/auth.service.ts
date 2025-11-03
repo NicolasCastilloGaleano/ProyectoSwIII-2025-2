@@ -1,10 +1,48 @@
-import * as admin from 'firebase-admin';
-import { COLLECTIONS } from '@data/constants';
-import { formatDate } from '@utils/date';
-import { UserData } from './auth.interface';
+import { COLLECTIONS } from "@data/constants";
+import { formatDate } from "@utils/date";
+import * as admin from "firebase-admin";
+import { auth, db } from "../../config/firebase";
+import { CreateUserDto, UserData } from "./auth.interface";
+
+/**
+ * Crea un usuario en Firebase Auth (email/password) y guarda su documento en Firestore.
+ */
+export const createUser = async (payload: CreateUserDto): Promise<UserData> => {
+  try {
+    const { email, password } = payload;
+
+    // Crear usuario en Firebase Authentication
+    const userRecord = await auth.createUser({
+      email,
+      password,
+    });
+
+    const uid = userRecord.uid;
+
+    // Documento para Firestore
+    const userDoc = {
+      email,
+      fechaDeCreacion: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    // Guardar el documento en Firestore
+    await db.collection(COLLECTIONS.USERS).doc(uid).set(userDoc);
+
+    // Normalizar y devolver el usuario creado
+    return {
+      id: uid,
+      uid,
+      correo: email,
+      fechaDeCreacion: new Date().toISOString(), // O usar un formato específico
+    } as UserData;
+  } catch (err: any) {
+    // Re-lanzar para que el controlador maneje el error adecuadamente
+    throw err;
+  }
+};
 
 export const getUserFromToken = async (uid: string): Promise<UserData> => {
-  const db = admin.firestore();
+  // const db = admin.firestore();
   const userDoc = await db.collection(COLLECTIONS.USERS).doc(uid).get();
 
   if (!userDoc.exists) {
