@@ -139,7 +139,7 @@ describe("Integración - GET /api/auth/me", () => {
       .get("/api/auth/me")
       .set("Authorization", "Bearer invalid-token");
 
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(401);
     expect(typeof res.body.error).toBe("string");
   });
 
