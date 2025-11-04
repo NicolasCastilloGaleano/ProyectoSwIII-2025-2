@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import Login from "../Login";
-import { PUBLICROUTES } from "@/routes/public.routes";
+import { PRIVATEROUTES } from "@/routes/private.routes";
 import { login } from "@/apps/auth/services/auth";
 
 /**
@@ -102,10 +102,10 @@ describe("Integración - Login", () => {
     await user.click(screen.getByRole("button", { name: /ingresar/i }));
 
     await waitFor(() => {
-      expect(login).toHaveBeenCalledWith("user@example.com", "unaClave123");
+      expect(loginMock).toHaveBeenCalledWith("user@example.com", "unaClave123");
     });
 
-    expect(navigateMock).toHaveBeenCalledWith(PUBLICROUTES.DASHBOARD);
+    expect(navigateMock).toHaveBeenCalledWith(PRIVATEROUTES.HOMEPAGE);
   });
 
   it("muestra un snackbar cuando el login falla", async () => {
