@@ -70,17 +70,20 @@ export const validateYearParam: RequestHandler = (req, res, next) => {
 
 /** Validación del body para upsert de día */
 export const validateUpsertDayBody: RequestHandler = (req, res, next) => {
-  const { moodId, note, at } = req.body ?? {};
+  const moods = req.body?.moods;
+  moods.forEach((mood: any) => {
+    const { moodId, note, at } = mood;
+    if (typeof moodId !== "string" || moodId.trim().length === 0) {
+      return bad(res, "moodId (string) is required");
+    }
+    if (note != null && typeof note !== "string") {
+      return bad(res, "note must be a string if provided");
+    }
+    if (at != null && typeof at !== "string") {
+      return bad(res, "at must be an ISO string if provided");
+    }
+  });
 
-  if (typeof moodId !== "string" || moodId.trim().length === 0) {
-    return bad(res, "moodId (string) is required");
-  }
-  if (note != null && typeof note !== "string") {
-    return bad(res, "note must be a string if provided");
-  }
-  if (at != null && typeof at !== "string") {
-    return bad(res, "at must be an ISO string if provided");
-  }
   // si quisieras, valida ISO: !isNaN(Date.parse(at))
 
   next();

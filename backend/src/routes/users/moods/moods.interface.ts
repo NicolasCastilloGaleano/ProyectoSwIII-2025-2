@@ -7,16 +7,6 @@ export interface Mood {
   [key: string]: any;
 }
 
-export interface CreateMoodDto {
-  emotion: string;
-  note?: string;
-}
-
-export interface UpdateMoodDto {
-  emotion?: string;
-  note?: string;
-}
-
 export interface ApiResponse<T = any> {
   success: boolean;
   message?: string;
@@ -38,9 +28,11 @@ export interface DayMoods {
 }
 
 export interface UpsertDayMoodDto {
+  moods: Mood[];
+}
+export interface Mood {
   moodId: string;
   note?: string;
-  at?: string; // ISO string
 }
 
 export interface DeleteDayMoodParams {
