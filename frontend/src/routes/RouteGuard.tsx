@@ -13,7 +13,6 @@ const PrivateRouteGuard: React.FC = () => {
   useEffect(() => {
     const getToken = async () => {
       const token = await getSessionIdToken();
-      // const token = "123";
 
       useStore.getState().authState.setToken(token || null);
       setToken(token || undefined);
@@ -33,11 +32,7 @@ const PrivateRouteGuard: React.FC = () => {
 const PublicRouteGuard: React.FC = () => {
   const token = useStore((store) => store.authState.auth.token);
 
-  return token ? (
-    <Navigate to={PRIVATEROUTES.USERS_LIST} replace />
-  ) : (
-    <Outlet />
-  );
+  return token ? <Navigate to={PRIVATEROUTES.HOMEPAGE} replace /> : <Outlet />;
 };
 
 export { PrivateRouteGuard, PublicRouteGuard };

@@ -1,0 +1,218 @@
+import type { Mood } from "../services/mood.interface";
+
+import Bedtime from "@mui/icons-material/Bedtime";
+import Bolt from "@mui/icons-material/Bolt";
+import Celebration from "@mui/icons-material/Celebration";
+import EmojiEmotions from "@mui/icons-material/EmojiEmotions";
+import Gavel from "@mui/icons-material/Gavel";
+import Hotel from "@mui/icons-material/Hotel";
+import PersonOff from "@mui/icons-material/PersonOff";
+import SelfImprovement from "@mui/icons-material/SelfImprovement";
+import SentimentSatisfiedAlt from "@mui/icons-material/SentimentSatisfiedAlt";
+import SentimentVeryDissatisfied from "@mui/icons-material/SentimentVeryDissatisfied";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import VolunteerActivism from "@mui/icons-material/VolunteerActivism";
+import WaterDrop from "@mui/icons-material/WaterDrop";
+import Whatshot from "@mui/icons-material/Whatshot";
+
+// --- React Icons (fallback) ---
+import { BiSad } from "react-icons/bi";
+import { FaGhost } from "react-icons/fa";
+
+export const moods: Mood[] = [
+  // POSITIVAS
+  {
+    moodId: "euforia",
+    label: "Eufórico",
+    valencia: 0.95,
+    activacion: 0.95,
+    dominancia: 0.85,
+    peso_riesgo: 0.1,
+    peso_bienestar: 0.9,
+    Icon: Celebration,
+    bgColor: "bg-yellow-400",
+    textColor: "text-yellow-400",
+  },
+  {
+    moodId: "entusiasmo",
+    label: "Entusiasmado",
+    valencia: 0.8,
+    activacion: 0.8,
+    dominancia: 0.8,
+    peso_riesgo: 0.15,
+    peso_bienestar: 0.8,
+    Icon: EmojiEmotions,
+    bgColor: "bg-orange-400",
+    textColor: "text-orange-400",
+  },
+  {
+    moodId: "tranquilidad",
+    label: "Tranquilo",
+    valencia: 0.7,
+    activacion: 0.3,
+    dominancia: 0.85,
+    peso_riesgo: 0.05,
+    peso_bienestar: 0.75,
+    Icon: SelfImprovement,
+    bgColor: "bg-green-400",
+    textColor: "text-green-400",
+  },
+  {
+    moodId: "gratitud",
+    label: "Agradecido",
+    valencia: 0.85,
+    activacion: 0.45,
+    dominancia: 0.75,
+    peso_riesgo: 0.05,
+    peso_bienestar: 0.7,
+    Icon: VolunteerActivism,
+    bgColor: "bg-pink-500",
+    textColor: "text-pink-500",
+  },
+  {
+    moodId: "satisfaccion",
+    label: "Satisfecho",
+    valencia: 0.8,
+    activacion: 0.4,
+    dominancia: 0.8,
+    peso_riesgo: 0.05,
+    peso_bienestar: 0.78,
+    Icon: SentimentSatisfiedAlt,
+    bgColor: "bg-lime-500",
+    textColor: "text-lime-500",
+  },
+
+  // NEGATIVAS
+  {
+    moodId: "ansiedad",
+    label: "Ansioso",
+    valencia: -0.85,
+    activacion: 0.85,
+    dominancia: 0.3,
+    peso_riesgo: 0.92,
+    peso_bienestar: 0.0,
+    Icon: SentimentVeryDissatisfied,
+    bgColor: "bg-purple-500",
+    textColor: "text-purple-500",
+  },
+  {
+    moodId: "estres",
+    label: "Estresado",
+    valencia: -0.75,
+    activacion: 0.85,
+    dominancia: 0.4,
+    peso_riesgo: 0.86,
+    peso_bienestar: 0.0,
+    Icon: Bolt,
+    bgColor: "bg-red-500",
+    textColor: "text-red-500",
+  },
+  {
+    moodId: "miedo",
+    label: "Asustado",
+    valencia: -0.95,
+    activacion: 0.95,
+    dominancia: 0.2,
+    peso_riesgo: 0.95,
+    peso_bienestar: 0.0,
+    Icon: FaGhost,
+    bgColor: "bg-indigo-700",
+    textColor: "text-indigo-700",
+  },
+  {
+    moodId: "ira",
+    label: "Bravo",
+    valencia: -0.8,
+    activacion: 0.8,
+    dominancia: 0.7,
+    peso_riesgo: 0.7,
+    peso_bienestar: 0.0,
+    Icon: Whatshot,
+    bgColor: "bg-red-600",
+    textColor: "text-red-600",
+  },
+  {
+    moodId: "culpa",
+    label: "Culpable",
+    valencia: -0.8,
+    activacion: 0.6,
+    dominancia: 0.25,
+    peso_riesgo: 0.78,
+    peso_bienestar: 0.0,
+    Icon: Gavel,
+    bgColor: "bg-amber-700",
+    textColor: "text-amber-700",
+  },
+  {
+    moodId: "verguenza",
+    label: "Avergonzado",
+    valencia: -0.8,
+    activacion: 0.65,
+    dominancia: 0.2,
+    peso_riesgo: 0.72,
+    peso_bienestar: 0.0,
+    Icon: VisibilityOff,
+    bgColor: "bg-gray-500",
+    textColor: "text-gray-500",
+  },
+  {
+    moodId: "tristeza",
+    label: "Triste",
+    valencia: -0.85,
+    activacion: 0.35,
+    dominancia: 0.25,
+    peso_riesgo: 0.9,
+    peso_bienestar: 0.0,
+    Icon: WaterDrop,
+    bgColor: "bg-blue-600",
+    textColor: "text-blue-600",
+  },
+  {
+    moodId: "apatia",
+    label: "Apático",
+    valencia: -0.75,
+    activacion: 0.2,
+    dominancia: 0.3,
+    peso_riesgo: 0.85,
+    peso_bienestar: 0.0,
+    Icon: Bedtime,
+    bgColor: "bg-slate-500",
+    textColor: "text-slate-500",
+  },
+  {
+    moodId: "cansancio",
+    label: "Cansado",
+    valencia: -0.4,
+    activacion: 0.2,
+    dominancia: 0.5,
+    peso_riesgo: 0.5,
+    peso_bienestar: 0.0,
+    Icon: Hotel,
+    bgColor: "bg-blue-400",
+    textColor: "text-blue-400",
+  },
+  {
+    moodId: "soledad",
+    label: "Solo",
+    valencia: -0.8,
+    activacion: 0.35,
+    dominancia: 0.3,
+    peso_riesgo: 0.88,
+    peso_bienestar: 0.0,
+    Icon: PersonOff,
+    bgColor: "bg-gray-600",
+    textColor: "text-gray-600",
+  },
+  {
+    moodId: "desesperanza",
+    label: "Desesperado",
+    valencia: -0.95,
+    activacion: 0.4,
+    dominancia: 0.1,
+    peso_riesgo: 0.98,
+    peso_bienestar: 0.0,
+    Icon: BiSad,
+    bgColor: "bg-zinc-600",
+    textColor: "text-zinc-600",
+  },
+];

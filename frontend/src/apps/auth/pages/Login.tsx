@@ -8,7 +8,6 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import * as yup from "yup";
 import { login } from "../services/auth";
-import { PUBLICROUTES } from "@/routes/public.routes";
 
 const loginSchema = yup.object({
   email: yup.string().email("Correo inválido").required("Correo requerido"),
@@ -42,8 +41,8 @@ const Login = () => {
     setIsRequestLoading(true);
     try {
       await login(data.email, data.password);
-      navigate(PRIVATEROUTES.HOMEPAGE)
-      //navigate(PRIVATEROUTES.USERS_LIST);
+
+      navigate(PRIVATEROUTES.HOMEPAGE);
     } catch (error) {
       showSnackbar(
         "Error al iniciar sesión. Verifica tus credenciales.",
