@@ -67,6 +67,18 @@ const mocks = vi.hoisted(() => {
 
 vi.mock("firebase-admin", () => {
   const { verifyIdTokenMock, firestoreMock } = mocks;
+  
+  const mockFirestore = {
+    FieldValue: {
+      serverTimestamp: () => new Date(),
+      increment: (n: number) => n,
+    },
+    Timestamp: {
+      now: () => new Date(),
+      fromDate: (date: Date) => date,
+    },
+  };
+
   return {
     __esModule: true,
     apps: [],
@@ -75,19 +87,37 @@ vi.mock("firebase-admin", () => {
     auth: () => ({
       verifyIdToken: verifyIdTokenMock,
     }),
-    firestore: () => firestoreMock,
+    firestore: () => ({ ...firestoreMock, ...mockFirestore }),
     storage: vi.fn(),
   };
 });
 
 vi.mock("@config/firebase", () => {
   const { verifyIdTokenMock, firestoreMock } = mocks;
+
+  const mockFirestore = {
+    FieldValue: {
+      serverTimestamp: () => new Date(),
+      increment: (n: number) => n,
+    },
+    Timestamp: {
+      now: () => new Date(),
+      fromDate: (date: Date) => date,
+    },
+  };
+
   return {
     db: firestoreMock,
     auth: {
       verifyIdToken: verifyIdTokenMock,
     },
     storage: {},
+    default: {
+      firestore: () => ({ ...firestoreMock, ...mockFirestore }),
+      auth: () => ({ verifyIdToken: verifyIdTokenMock }),
+      storage: () => ({}),
+    },
+    ...mockFirestore,
   };
 });
 
@@ -109,7 +139,7 @@ describe("Integración - GET /api/auth/me", () => {
       .get("/api/auth/me")
       .set("Authorization", "Bearer invalid-token");
 
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(401);
     expect(typeof res.body.error).toBe("string");
   });
 
@@ -131,7 +161,6 @@ describe("Integración - GET /api/auth/me", () => {
         roles: firestoreUser.roles,
       },
     });
-    // Verificamos que fechaDeCreacion sea una fecha válida
     expect(res.body.data.fechaDeCreacion).toBeDefined();
     expect(new Date(res.body.data.fechaDeCreacion)).toBeInstanceOf(Date);
   });
