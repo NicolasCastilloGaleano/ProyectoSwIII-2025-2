@@ -1,3 +1,4 @@
+import { SOFTWARE_THEME } from "@/config";
 import Search from "@mui/icons-material/Search";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -29,14 +30,14 @@ type InputSelectPropsWithIcon = InputSelectProps & InputIconProps;
 
 export const StyledTextField = styled(TextField)(() => ({
   "& label.Mui-focused": {
-    color: "#02AFB4",
+    color: SOFTWARE_THEME.primary,
   },
   "& .MuiInput-underline:after": {
-    borderBottomColor: "#02AFB4",
+    borderBottomColor: SOFTWARE_THEME.primary,
   },
   "& .MuiOutlinedInput-root": {
     "&.Mui-focused fieldset": {
-      borderColor: "#02AFB4",
+      borderColor: SOFTWARE_THEME.primary,
     },
   },
 }));
@@ -211,11 +212,7 @@ const Input = Object.assign(BaseInput, {
         ...props.slotProps,
       }}
       {...props}
-      onKeyDown={(e: {
-        key: string;
-        preventDefault: () => void;
-        currentTarget: HTMLInputElement;
-      }) => {
+      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
         const isNumberKey = /^[0-9]$/.test(e.key);
         const isAllowedKey =
           e.key === "Backspace" ||

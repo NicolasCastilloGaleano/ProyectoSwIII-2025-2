@@ -22,6 +22,7 @@ export const login = async (
 
     // Obtener y guardar datos del usuario
     const userResponse = await getUserByToken();
+
     console.log("Token:", token);
     if (userResponse.success) {
       useStore.getState().authState.setCurrentUser(userResponse.data);

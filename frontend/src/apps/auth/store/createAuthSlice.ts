@@ -30,15 +30,30 @@ const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
     auth: initialState,
 
     setCurrentUser: (currentUser) => {
-      set((state) => ({ authState: { ...state.authState, currentUser } }));
+      set((state) => ({
+        authState: {
+          ...state.authState,
+          auth: { ...state.authState.auth, currentUser },
+        },
+      }));
     },
 
     setIsAuthLoading: (isLoading) => {
-      set((state) => ({ authState: { ...state.authState, isLoading } }));
+      set((state) => ({
+        authState: {
+          ...state.authState,
+          auth: { ...state.authState.auth, isLoading },
+        },
+      }));
     },
 
     setToken: (token) => {
-      set((state) => ({ authState: { ...state.authState, token } }));
+      set((state) => ({
+        authState: {
+          ...state.authState,
+          auth: { ...state.authState.auth, token },
+        },
+      }));
     },
 
     clearSession: () => {
