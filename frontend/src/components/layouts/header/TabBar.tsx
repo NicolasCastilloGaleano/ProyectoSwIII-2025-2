@@ -1,12 +1,13 @@
+import { PRIVATEROUTES } from "@/routes/private.routes";
 import useStore from "@/store/useStore";
 import React, { useEffect, useMemo } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 
-import FavoriteIcon from "@mui/icons-material/Favorite";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import ChecklistIcon from "@mui/icons-material/Checklist";
 import HomeIcon from "@mui/icons-material/Home";
-import PersonPinIcon from "@mui/icons-material/PersonPin";
-import PhoneIcon from "@mui/icons-material/Phone";
-import SettingsIcon from "@mui/icons-material/Settings";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import PersonIcon from "@mui/icons-material/Person";
 
 import Tab, { type TabProps } from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
@@ -27,11 +28,27 @@ const TabBar = () => {
   // Define aquí el orden y rutas de las tabs
   const tabs = useMemo(
     () => [
-      { label: "RECENTS", icon: <PhoneIcon />, to: "/recents" },
-      { label: "FAVORITES", icon: <FavoriteIcon />, to: "/favorites" },
-      { label: "Home", icon: <HomeIcon />, to: "/home" },
-      { label: "NEARBY", icon: <PersonPinIcon />, to: "/nearby" },
-      { label: "settings", icon: <SettingsIcon />, to: "/settings" },
+      { label: "Inicio", icon: <HomeIcon />, to: PRIVATEROUTES.HOMEPAGE },
+      {
+        label: "Pacientes",
+        icon: <PeopleAltIcon />,
+        to: PRIVATEROUTES.USERS_LIST,
+      },
+      {
+        label: "Analítica",
+        icon: <AssessmentIcon />,
+        to: PRIVATEROUTES.ANALYTICS,
+      },
+      {
+        label: "Plan",
+        icon: <ChecklistIcon />,
+        to: PRIVATEROUTES.IMPROVEMENTPLAN,
+      },
+      {
+        label: "Perfil",
+        icon: <PersonIcon />,
+        to: PRIVATEROUTES.PROFILEPAGE,
+      },
     ],
     [],
   );

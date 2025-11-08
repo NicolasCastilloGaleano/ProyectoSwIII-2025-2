@@ -20,6 +20,9 @@ export interface UserDoc {
   status: UserStatus;
   phone?: string | null;
   photoURL?: string | null;
+  accentColor?: string | null;
+  searchableName?: string;
+  searchTokens?: string[];
 
   // Timestamps
   createdAt: number; // Date.now()
@@ -32,20 +35,11 @@ export interface User extends UserDoc {
 }
 
 // DTOs de entrada (lo que aceptan los endpoints)
-export interface CreateUserDTO {
-  name: string;
-  email: string;
-  role?: UserRole; // default: USER
-  status?: UserStatus; // default: ACTIVE
-  phone?: string | null;
-  photoURL?: string | null;
-}
-
 export interface UpdateUserDTO {
   name?: string;
-  email?: string;
   role?: UserRole;
   status?: UserStatus;
   phone?: string | null;
   photoURL?: string | null;
+  accentColor?: string | null;
 }

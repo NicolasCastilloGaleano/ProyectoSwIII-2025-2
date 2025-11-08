@@ -41,13 +41,14 @@ const Login = () => {
     setIsRequestLoading(true);
     try {
       await login(data.email, data.password);
-
       navigate(PRIVATEROUTES.HOMEPAGE);
     } catch (error) {
-      showSnackbar(
-        "Error al iniciar sesión. Verifica tus credenciales.",
-        "error",
-      );
+      const baseMessage = "Error al iniciar sesión";
+      const detail =
+        error instanceof Error
+          ? error.message
+          : "Verifica tus credenciales.";
+      showSnackbar(`${baseMessage}. ${detail}`, "error");
       console.error("loginPage error: ", error);
     } finally {
       setIsRequestLoading(false);

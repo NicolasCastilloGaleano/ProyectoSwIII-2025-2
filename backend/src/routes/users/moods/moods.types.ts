@@ -5,5 +5,6 @@ export type MoodRouteLocals = {
     year?: number; // 2025
     month?: number; // 11
     day?: string; // "01".."31"
+    range?: number; // cantidad de meses para analytics
   };
 };

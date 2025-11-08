@@ -71,6 +71,9 @@ export const validateYearParam: RequestHandler = (req, res, next) => {
 /** Validación del body para upsert de día */
 export const validateUpsertDayBody: RequestHandler = (req, res, next) => {
   const moods = req.body?.moods;
+  if (!Array.isArray(moods) || moods.length === 0) {
+    return bad(res, "Debe enviar al menos una emoción");
+  }
   moods.forEach((mood: any) => {
     const { moodId, note, at } = mood;
     if (typeof moodId !== "string" || moodId.trim().length === 0) {
@@ -114,6 +117,35 @@ export const validateQueryMonthOrYear: RequestHandler = (req, res, next) => {
     if (!YEAR_RE.test(year)) return bad(res, "Invalid year. Use YYYY");
     locals.moodParams.year = Number(year);
   }
+
+  next();
+};
+
+export const validateAnalyticsQuery: RequestHandler = (req, res, next) => {
+  const month = (req.query.month as string | undefined)?.trim();
+  const rangeRaw = req.query.range as string | undefined;
+
+  if (month && !YYMM_RE.test(month)) {
+    return bad(res, "Invalid month. Use YYYY-MM");
+  }
+
+  let range: number | undefined;
+  if (rangeRaw !== undefined) {
+    const numeric = Number(rangeRaw);
+    if (Number.isNaN(numeric) || numeric < 1 || numeric > 12) {
+      return bad(res, "range debe estar entre 1 y 12 meses");
+    }
+    range = numeric;
+  }
+
+  const locals = ensureLocals(res);
+  if (!locals.moodParams?.uid) return bad(res, "User ID is required");
+
+  locals.moodParams = {
+    ...locals.moodParams,
+    ...(month && { yyyymm: month }),
+    ...(range !== undefined && { range }),
+  };
 
   next();
 };
