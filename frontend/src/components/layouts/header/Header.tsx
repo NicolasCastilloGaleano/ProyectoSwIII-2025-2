@@ -8,8 +8,9 @@ import { useNavigate } from "react-router-dom";
 import ChipProfile from "./ChipProfile";
 
 const Header = () => {
-  const navigate = useNavigate();
   const showSnackbar = useStore((state) => state.showSnackbar);
+
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     await logout();
@@ -21,7 +22,9 @@ const Header = () => {
     <header
       role="banner"
       className="flex justify-center px-4"
-      style={{ backgroundColor: SOFTWARE_THEME.primary }}
+      style={{
+        background: `linear-gradient(0deg, ${SOFTWARE_THEME.secondary}, ${SOFTWARE_THEME.primary})`,
+      }}
     >
       <Container className="p-0" maxWidth="lg" sx={{ gap: 4 }}>
         <div className="flex h-12 items-center gap-4 sm:gap-6">

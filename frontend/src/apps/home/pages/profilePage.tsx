@@ -1,7 +1,7 @@
-import { Button } from "@/components/forms";
 import { logout } from "@/apps/auth/services/auth";
 import UploadAvatars from "@/apps/home/components/uploadAvatars";
 import { updatePatient } from "@/apps/users/services/users";
+import { Button } from "@/components/forms";
 import { PRIVATEROUTES } from "@/routes/private.routes";
 import { PUBLICROUTES } from "@/routes/public.routes";
 import useStore from "@/store/useStore";
@@ -16,13 +16,7 @@ import { Chip } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const accentOptions = [
-  "#6366F1",
-  "#0EA5E9",
-  "#EC4899",
-  "#22C55E",
-  "#F97316",
-];
+const accentOptions = ["#6366F1", "#0EA5E9", "#EC4899", "#22C55E", "#F97316"];
 
 const AVATAR_MAX_BYTES = Number(
   import.meta.env.VITE_AVATAR_MAX_BYTES ?? 800 * 1024,
@@ -54,10 +48,7 @@ const toRelativeTime = (input?: number | Date | string | null) => {
   let duration = diffMs / 1000;
   for (const division of divisions) {
     if (Math.abs(duration) < division.amount) {
-      return relativeTimeFormatter.format(
-        Math.round(duration),
-        division.unit,
-      );
+      return relativeTimeFormatter.format(Math.round(duration), division.unit);
     }
     duration /= division.amount;
   }
@@ -66,9 +57,7 @@ const toRelativeTime = (input?: number | Date | string | null) => {
 
 const ProfilePage = () => {
   const { currentUser } = useStore((state) => state.authState.auth);
-  const setCurrentUser = useStore(
-    (state) => state.authState.setCurrentUser,
-  );
+  const setCurrentUser = useStore((state) => state.authState.setCurrentUser);
   const showSnackbar = useStore((state) => state.showSnackbar);
   const navigate = useNavigate();
 
@@ -177,7 +166,7 @@ const ProfilePage = () => {
           aria-label={`Cambiar color destacado a ${color}`}
           className={`h-10 w-10 rounded-2xl border-2 transition ${
             accent === color
-              ? "border-gray-900 scale-105"
+              ? "scale-105 border-gray-900"
               : "border-transparent opacity-70"
           }`}
           style={{ backgroundColor: color }}
@@ -189,7 +178,7 @@ const ProfilePage = () => {
   return (
     <div className="space-y-6 px-4 py-6">
       <section
-        className="relative overflow-hidden rounded-3xl text-white shadow-soft"
+        className="shadow-soft relative overflow-hidden rounded-3xl text-white"
         style={{
           background: `linear-gradient(120deg, ${accent}, #1E1B4B)`,
         }}
@@ -206,10 +195,12 @@ const ProfilePage = () => {
               onFileRejected={(reason) => showSnackbar(reason, "warning")}
             />
             <div>
-              <p className="text-sm uppercase tracking-widest text-white/70">
+              <p className="text-sm tracking-widest text-white/70 uppercase">
                 Perfil emocional
               </p>
-              <h1 className="text-3xl font-bold leading-tight">{displayName}</h1>
+              <h1 className="text-3xl leading-tight font-bold">
+                {displayName}
+              </h1>
               <div className="mt-3 flex flex-wrap gap-2 text-xs">
                 <Chip
                   icon={<VerifiedUserIcon fontSize="small" />}
@@ -244,7 +235,7 @@ const ProfilePage = () => {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-3">
-        <article className="rounded-3xl border border-gray-100 bg-white p-5 shadow-soft lg:col-span-2">
+        <article className="shadow-soft rounded-3xl border border-gray-100 bg-white p-5 lg:col-span-2">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-gray-500">
@@ -284,7 +275,7 @@ const ProfilePage = () => {
           </div>
         </article>
 
-        <article className="rounded-3xl border border-gray-100 bg-white p-5 shadow-soft">
+        <article className="shadow-soft rounded-3xl border border-gray-100 bg-white p-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-gray-500">
@@ -297,8 +288,8 @@ const ProfilePage = () => {
             <ColorLensIcon className="text-rose-500" />
           </div>
           <p className="mt-3 text-sm text-gray-500">
-            Ajusta el color y el avatar que prefieras ver en tus tableros.
-            Estos cambios no afectan a otros usuarios.
+            Ajusta el color y el avatar que prefieras ver en tus tableros. Estos
+            cambios no afectan a otros usuarios.
           </p>
           <div className="mt-4">{personalizationSwatches}</div>
           <div className="mt-4 flex justify-end">
@@ -313,7 +304,7 @@ const ProfilePage = () => {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-3">
-        <article className="rounded-3xl border border-gray-100 bg-white p-5 shadow-soft">
+        <article className="shadow-soft rounded-3xl border border-gray-100 bg-white p-5">
           <p className="text-sm font-semibold text-gray-500">
             Preferencias de bienestar
           </p>
@@ -326,7 +317,7 @@ const ProfilePage = () => {
             <li>• Compartir el resumen mensual con tu terapeuta</li>
           </ul>
         </article>
-        <article className="rounded-3xl border border-gray-100 bg-white p-5 shadow-soft lg:col-span-2">
+        <article className="shadow-soft rounded-3xl border border-gray-100 bg-white p-5 lg:col-span-2">
           <p className="text-sm font-semibold text-gray-500">
             Actividad reciente
           </p>
@@ -359,7 +350,7 @@ const InfoBlock = ({ icon, label, value }: InfoBlockProps) => (
     <div className="flex items-center gap-3 text-gray-500">
       <div className="rounded-2xl bg-white p-2 text-indigo-500">{icon}</div>
       <div>
-        <p className="text-xs uppercase tracking-wider">{label}</p>
+        <p className="text-xs tracking-wider uppercase">{label}</p>
         <p className="text-base font-semibold text-gray-900">{value}</p>
       </div>
     </div>

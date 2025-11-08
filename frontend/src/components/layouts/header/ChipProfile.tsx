@@ -32,7 +32,7 @@ const ChipProfile = () => {
       <Tooltip title={currentUser.name}>
         <Chip
           clickable
-          onClick={() => navigate(PRIVATEROUTES.USERS_PROFILE)}
+          onClick={() => navigate(PRIVATEROUTES.PROFILEPAGE)}
           avatar={
             <Avatar
               src={currentUser.photoURL || undefined}

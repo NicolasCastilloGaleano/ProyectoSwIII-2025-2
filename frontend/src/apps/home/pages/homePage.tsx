@@ -17,8 +17,8 @@ import Mood from "@mui/icons-material/Mood";
 import NavigateBefore from "@mui/icons-material/NavigateBefore";
 import NavigateNext from "@mui/icons-material/NavigateNext";
 import TimelineIcon from "@mui/icons-material/Timeline";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Avatar } from "@mui/material";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
 const toneStyles: Record<MoodTone, string> = {
@@ -76,9 +76,7 @@ export default function HomePage() {
   const heroAccent = auth.currentUser?.accentColor ?? "#6366F1";
   const heroAvatar = auth.currentUser?.photoURL ?? null;
   const heroDisplayName =
-    auth.currentUser?.name ??
-    auth.currentUser?.email ??
-    "Bienvenido";
+    auth.currentUser?.name ?? auth.currentUser?.email ?? "Bienvenido";
 
   const timeline = useMemo<MoodTimelineEntry[]>(() => {
     if (!analytics?.timeline) return [];
@@ -139,14 +137,20 @@ export default function HomePage() {
           avatar={heroAvatar}
           displayName={heroDisplayName}
         />
-        <AnalyticsSummaryCard analytics={analytics} loading={analyticsLoading} />
+        <AnalyticsSummaryCard
+          analytics={analytics}
+          loading={analyticsLoading}
+        />
       </section>
 
       <QuickActionsRow
         onPatients={() => navigate(PRIVATEROUTES.USERS_LIST)}
         onInsights={() => navigate(PRIVATEROUTES.ANALYTICS)}
         onCalendar={() =>
-          calendarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+          calendarRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          })
         }
       />
 
@@ -174,7 +178,10 @@ export default function HomePage() {
       </section>
 
       {isModalOpen && (
-        <CreateMoodModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <CreateMoodModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
       )}
     </div>
   );
@@ -211,21 +218,20 @@ const HeroTodayCard = ({
         background: `linear-gradient(120deg, ${accentColor ?? "#0ea5e9"}, #1E1B4B)`,
       }}
     >
-      <div className="absolute inset-0 opacity-25">
-        <div className="hero-glow" />
-      </div>
       <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-sm uppercase tracking-widest text-white/80">
+          <p className="text-sm tracking-widest text-white/80 uppercase">
             {todayLabel}
           </p>
-          <h1 className="mt-2 text-3xl font-bold leading-tight">
-            {displayName ? `${displayName}, ¿cómo te sientes hoy?` : "¿Cómo te sientes hoy?"}
+          <h1 className="mt-2 text-3xl leading-tight font-bold">
+            {displayName
+              ? `${displayName}, ¿cómo te sientes hoy?`
+              : "¿Cómo te sientes hoy?"}
           </h1>
           <p className="mt-2 text-white/80">
-            Lleva un seguimiento visual y rápido de tus estados emocionales. Cada
-            registro alimenta el análisis inteligente y actualiza los tableros de tus
-            profesionales.
+            Lleva un seguimiento visual y rápido de tus estados emocionales.
+            Cada registro alimenta el análisis inteligente y actualiza los
+            tableros de tus profesionales.
           </p>
           <div className="mt-4 flex flex-wrap gap-4 text-sm">
             <HighlightPill
@@ -256,7 +262,7 @@ const HeroTodayCard = ({
               {displayName?.[0]}
             </Avatar>
             <div>
-              <p className="text-sm uppercase tracking-widest text-white/60">
+              <p className="text-sm tracking-widest text-white/60 uppercase">
                 Resumen del día
               </p>
               <p className="text-lg font-semibold text-white">
@@ -336,7 +342,7 @@ const AnalyticsSummaryCard = ({ analytics, loading }: SummaryProps) => {
   ];
 
   return (
-    <div className="rounded-3xl border border-gray-100 bg-white p-4 shadow-soft">
+    <div className="shadow-soft rounded-3xl border border-gray-100 bg-white p-4">
       <p className="text-sm font-semibold text-gray-500">Resumen emocional</p>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         {cards.map((card) => (
@@ -402,7 +408,7 @@ const QuickActionsRow = ({
           key={action.label}
           type="button"
           onClick={action.onClick}
-          className="flex items-center gap-4 rounded-3xl border border-gray-100 bg-white p-4 text-left shadow-soft transition hover:-translate-y-0.5 hover:border-indigo-200"
+          className="shadow-soft flex items-center gap-4 rounded-3xl border border-gray-100 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-indigo-200"
         >
           <div className="rounded-2xl bg-indigo-50 p-3 text-indigo-500">
             {action.icon}
@@ -465,11 +471,11 @@ const MonthlyMoodCalendar = ({
   );
 
   return (
-    <article className="rounded-3xl border border-gray-100 bg-white p-6 shadow-soft">
+    <article className="shadow-soft rounded-3xl border border-gray-100 bg-white p-6">
       <header className="mb-4 flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold text-gray-500">Calendario</p>
-          <h2 className="text-xl font-bold capitalize text-gray-900">
+          <h2 className="text-xl font-bold text-gray-900 capitalize">
             {monthLabel}
           </h2>
         </div>
@@ -492,7 +498,7 @@ const MonthlyMoodCalendar = ({
           </button>
         </div>
       </header>
-      <div className="grid grid-cols-7 gap-2 text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
+      <div className="grid grid-cols-7 gap-2 text-center text-xs font-semibold tracking-widest text-gray-400 uppercase">
         {["L", "M", "X", "J", "V", "S", "D"].map((dayLabel) => (
           <span key={dayLabel}>{dayLabel}</span>
         ))}
@@ -591,10 +597,13 @@ const MoodDonutCard = ({ sentiment }: MoodDonutCardProps) => {
   const donutBackground = `conic-gradient(#22c55e 0% ${positiveEnd}%, #facc15 ${positiveEnd}% ${neutralEnd}%, #f87171 ${neutralEnd}% 100%)`;
 
   return (
-    <article className="flex h-full flex-col justify-between rounded-3xl border border-gray-100 bg-white p-6 text-center shadow-soft">
+    <article className="shadow-soft flex h-full flex-col justify-between rounded-3xl border border-gray-100 bg-white p-6 text-center">
       <p className="text-sm font-semibold text-gray-500">Balance diario</p>
       <div className="mt-4 flex flex-col items-center gap-4">
-        <div className="relative h-40 w-40 rounded-full" style={{ background: donutBackground }}>
+        <div
+          className="relative h-40 w-40 rounded-full"
+          style={{ background: donutBackground }}
+        >
           <div className="absolute inset-4 flex flex-col items-center justify-center rounded-full bg-white">
             <span className="text-3xl font-bold text-gray-900">
               {sentiment.wellbeingScore.toFixed(0)}%
@@ -605,15 +614,21 @@ const MoodDonutCard = ({ sentiment }: MoodDonutCardProps) => {
         <div className="w-full space-y-2 text-left text-sm">
           <div className="flex items-center justify-between rounded-2xl bg-emerald-50 px-3 py-2 text-emerald-700">
             <span>Positivo</span>
-            <span className="font-semibold">{sentiment.positive.toFixed(1)}%</span>
+            <span className="font-semibold">
+              {sentiment.positive.toFixed(1)}%
+            </span>
           </div>
           <div className="flex items-center justify-between rounded-2xl bg-amber-50 px-3 py-2 text-amber-700">
             <span>Neutro</span>
-            <span className="font-semibold">{sentiment.neutral.toFixed(1)}%</span>
+            <span className="font-semibold">
+              {sentiment.neutral.toFixed(1)}%
+            </span>
           </div>
           <div className="flex items-center justify-between rounded-2xl bg-rose-50 px-3 py-2 text-rose-700">
             <span>Negativo</span>
-            <span className="font-semibold">{sentiment.negative.toFixed(1)}%</span>
+            <span className="font-semibold">
+              {sentiment.negative.toFixed(1)}%
+            </span>
           </div>
         </div>
       </div>
@@ -632,7 +647,7 @@ const MoodTimelineBoard = ({
   moodDictionary,
   loading,
 }: TimelineProps) => (
-  <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-soft lg:col-span-2">
+  <div className="shadow-soft rounded-3xl border border-gray-100 bg-white p-5 lg:col-span-2">
     <div className="flex items-center justify-between">
       <div>
         <p className="text-sm font-semibold text-gray-500">Latido emocional</p>
@@ -646,7 +661,7 @@ const MoodTimelineBoard = ({
         ? Array.from({ length: 4 }).map((_, idx) => (
             <div
               key={`timeline-skeleton-${idx}`}
-              className="h-32 rounded-2xl border border-gray-100 bg-gray-50 animate-pulse"
+              className="h-32 animate-pulse rounded-2xl border border-gray-100 bg-gray-50"
             />
           ))
         : timeline.map((entry) => (
@@ -704,7 +719,7 @@ interface HeatmapProps {
 }
 
 const MoodHeatmapBoard = ({ data, loading }: HeatmapProps) => (
-  <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-soft">
+  <div className="shadow-soft rounded-3xl border border-gray-100 bg-white p-5">
     <p className="text-sm font-semibold text-gray-500">Mapa de energía</p>
     <h2 className="text-xl font-bold text-gray-900">
       Tendencia de los últimos días
@@ -714,7 +729,7 @@ const MoodHeatmapBoard = ({ data, loading }: HeatmapProps) => (
         ? Array.from({ length: 18 }).map((_, idx) => (
             <div
               key={`heatmap-skeleton-${idx}`}
-              className="h-10 rounded-xl bg-gray-100 animate-pulse"
+              className="h-10 animate-pulse rounded-xl bg-gray-100"
             />
           ))
         : data.map((entry) => {
@@ -744,7 +759,7 @@ interface TopProps {
 }
 
 const TopMoodsBoard = ({ analytics, loading }: TopProps) => (
-  <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-soft">
+  <div className="shadow-soft rounded-3xl border border-gray-100 bg-white p-5">
     <p className="text-sm font-semibold text-gray-500">Top emociones</p>
     <h2 className="text-xl font-bold text-gray-900">
       Frecuencias más repetidas
@@ -754,7 +769,7 @@ const TopMoodsBoard = ({ analytics, loading }: TopProps) => (
         ? Array.from({ length: 3 }).map((_, idx) => (
             <div
               key={`top-skeleton-${idx}`}
-              className="h-16 rounded-2xl bg-gray-100 animate-pulse"
+              className="h-16 animate-pulse rounded-2xl bg-gray-100"
             />
           ))
         : (analytics?.topMoods ?? []).slice(0, 4).map((mood) => (
