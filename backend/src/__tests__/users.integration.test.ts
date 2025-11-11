@@ -26,6 +26,8 @@ const mocks = vi.hoisted(() => {
       photoURL: null,
       createdAt: Date.now(),
       updatedAt: Date.now(),
+      searchableName: "laura gomez",
+      searchTokens: ["l", "la", "lau", "laur", "laura", "g", "go", "gom", "gome", "gomez"],
     },
     {
       id: "user-02",
@@ -37,34 +39,92 @@ const mocks = vi.hoisted(() => {
       photoURL: null,
       createdAt: Date.now(),
       updatedAt: Date.now(),
+      searchableName: "carlos perez",
+      searchTokens: ["c", "ca", "car", "carl", "carlo", "carlos", "p", "pe", "per", "pere", "perez"],
     },
   ];
 
-  const collectionRef = {
-    get: vi.fn(async () => ({
-      docs: dataset.map((entry) => ({
-        id: entry.id,
-        data: () => ({
-          name: entry.name,
-          email: entry.email,
-          role: entry.role,
-          status: entry.status,
-          phone: entry.phone,
-          photoURL: entry.photoURL,
-          createdAt: entry.createdAt,
-          updatedAt: entry.updatedAt,
-        }),
-      })),
+  const createDoc = (entry: (typeof dataset)[number]) => ({
+    id: entry.id,
+    data: () => ({
+      name: entry.name,
+      email: entry.email,
+      role: entry.role,
+      status: entry.status,
+      phone: entry.phone,
+      photoURL: entry.photoURL,
+      createdAt: entry.createdAt,
+      updatedAt: entry.updatedAt,
+      searchableName: entry.searchableName,
+      searchTokens: entry.searchTokens,
+    }),
+  });
+
+  const collectionRef: any = {
+    _filters: [] as Array<(entry: (typeof dataset)[number]) => boolean>,
+    where(field: string, op: string, value: unknown) {
+      this._filters.push((entry: (typeof dataset)[number]) => {
+        if (op === "array-contains") {
+          return Array.isArray((entry as any)[field]) &&
+            (entry as any)[field].includes(value);
+        }
+        if (op === "==") {
+          return (entry as any)[field] === value;
+        }
+        return true;
+      });
+      return this;
+    },
+    limit() {
+      return this;
+    },
+    orderBy() {
+      return this;
+    },
+    get: vi.fn(async () => {
+      interface UserData {
+        id: string;
+        name: string;
+        email: string;
+        role: string;
+        status: string;
+        phone: string;
+        photoURL: string | null;
+        createdAt: number;
+        updatedAt: number;
+        searchableName: string;
+        searchTokens: string[];
+      }
+
+      interface Doc {
+        id: string;
+        data: () => Omit<UserData, 'id'>;
+      }
+
+      const docs: Doc[] = dataset
+        .filter((entry: UserData) => collectionRef._filters.every((fn: (entry: UserData) => boolean) => fn(entry)))
+        .map(createDoc);
+      collectionRef._filters = [];
+      return { docs };
+    }),
+    doc: vi.fn((id: string) => ({
+      id,
+      get: vi.fn(async () => {
+        const match = dataset.find((entry) => entry.id === id);
+        if (!match) return { exists: false };
+        return { exists: true, id, data: () => createDoc(match).data() };
+      }),
     })),
-    doc: vi.fn(),
+    withConverter: vi.fn(function (this: any) {
+      return this;
+    }),
   };
-  (collectionRef as any).withConverter = vi.fn(() => collectionRef);
 
   const firestoreMock = {
     collection: vi.fn(() => collectionRef),
   };
 
-  return { verifyIdTokenMock, firestoreMock, dataset };
+  return { verifyIdTokenMock, firestoreMock, dataset, collectionRef };
 });
 
 vi.mock("firebase-admin", () => {
@@ -104,28 +164,12 @@ describe("Integración - GET /api/users", () => {
   });
 
   beforeEach(() => {
-    const { firestoreMock, dataset } = mocks;
-    firestoreMock.collection.mockReturnValue({
-      get: vi.fn(async () => ({
-        docs: dataset.map((entry) => ({
-          id: entry.id,
-          data: () => ({
-            name: entry.name,
-            email: entry.email,
-            role: entry.role,
-            status: entry.status,
-            phone: entry.phone,
-            photoURL: entry.photoURL,
-            createdAt: entry.createdAt,
-            updatedAt: entry.updatedAt,
-          }),
-        })),
-      })),
-      doc: vi.fn(),
-      withConverter: vi.fn(function (this: any) {
-        return this;
-      }),
-    } as any);
+    const { firestoreMock, collectionRef } = mocks;
+    firestoreMock.collection.mockClear();
+    collectionRef._filters = [];
+    collectionRef.get.mockClear();
+    collectionRef.doc.mockClear();
+    collectionRef.withConverter.mockClear();
   });
 
   const app = createApp();
@@ -155,6 +199,28 @@ describe("Integración - GET /api/users", () => {
       (user: any) => typeof user.name === "string" && user.name.includes("Laura"),
     );
     expect(match).toBeTruthy();
+  });
+
+  it("filtra por prefijos de nombre usando searchTokens normalizados", async () => {
+    const res = await request(app)
+      .get("/api/users")
+      .query({ q: "lau" })
+      .set("Authorization", "Bearer admin-token");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0]).toMatchObject({ id: "user-01" });
+  });
+
+  it("prioriza la coincidencia directa por id cuando q es un identificador", async () => {
+    const res = await request(app)
+      .get("/api/users")
+      .query({ q: "user-02" })
+      .set("Authorization", "Bearer admin-token");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0]).toMatchObject({ id: "user-02" });
   });
 
   it("responde 401 cuando falta el token", async () => {

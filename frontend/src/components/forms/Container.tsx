@@ -50,8 +50,6 @@ const BaseContainer = ({ children, label }: ContainerProps) => {
         {label}
       </Typography>
 
-      <hr className="my-2" />
-
       {children}
     </Div>
   );
@@ -101,8 +99,6 @@ const Container = Object.assign(BaseContainer, {
           );
         })}
       </Breadcrumbs>
-
-      <hr className="my-2" />
 
       {children}
     </Div>

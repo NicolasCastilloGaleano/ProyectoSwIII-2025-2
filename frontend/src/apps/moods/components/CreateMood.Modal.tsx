@@ -34,9 +34,12 @@ type FormValues = yup.InferType<typeof schema>;
 const CreateMoodModal = ({ open, onClose }: CreateMoodModalProps) => {
   const currentUser = useStore((s) => s.authState.auth.currentUser);
   const showSnackbar = useStore((s) => s.showSnackbar);
-  const { addMoodsForToday: addMoodForToday, getMoodsForDate } = useStore(
-    (s) => s.moodsState,
-  );
+  const {
+    addMoodsForToday: addMoodForToday,
+    getMoodsForDate,
+    loadAnalytics,
+    loadingMoods,
+  } = useStore((s) => s.moodsState);
 
   const todayKey = new Date().toLocaleDateString("en-CA");
   const todaySelectedFromStore = getMoodsForDate(todayKey) ?? [];
@@ -114,6 +117,15 @@ const CreateMoodModal = ({ open, onClose }: CreateMoodModalProps) => {
       res.message ?? "Emociones registradas correctamente",
       "success",
     );
+    const monthParam = `${year}-${month}`;
+    const analyticsResponse = await loadAnalytics({
+      userId: currentUser.id,
+      month: monthParam,
+      range: 3,
+    });
+    if (!analyticsResponse.success && analyticsResponse.error) {
+      showSnackbar(analyticsResponse.error, "warning");
+    }
     onClose();
   };
 
@@ -127,10 +139,14 @@ const CreateMoodModal = ({ open, onClose }: CreateMoodModalProps) => {
       maxWidth="md"
       onClose={onClose}
       open={open}
-      title="Registrar emoción"
+      title="Registrar emocion"
       actions={
-        <Button type="submit" onClick={handleSubmit(onSubmit, onInvalid)}>
-          Confirmar emoción
+        <Button
+          type="submit"
+          onClick={handleSubmit(onSubmit, onInvalid)}
+          disabled={loadingMoods === "add"}
+        >
+          {loadingMoods === "add" ? "Guardando..." : "Confirmar emocion"}
         </Button>
       }
     >

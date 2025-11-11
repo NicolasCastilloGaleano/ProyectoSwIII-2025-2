@@ -20,6 +20,16 @@ export interface UserDoc {
   status: UserStatus;
   phone?: string | null;
   photoURL?: string | null;
+  accentColor?: string | null;
+  /**
+   * Campo auxiliar para búsquedas case-insensitive.
+   * Se almacena en minúsculas y sin acentos.
+   */
+  searchableName?: string;
+  /**
+   * Lista de prefijos normalizados usados para filtrar por nombre.
+   */
+  searchTokens?: string[];
 
   // Timestamps
   createdAt: number; // Date.now()
@@ -39,13 +49,25 @@ export interface CreateUserDTO {
   status?: UserStatus; // default: ACTIVE
   phone?: string | null;
   photoURL?: string | null;
+  accentColor?: string | null;
 }
 
 export interface UpdateUserDTO {
   name?: string;
-  email?: string;
   role?: UserRole;
   status?: UserStatus;
   phone?: string | null;
   photoURL?: string | null;
+  accentColor?: string | null;
+}
+
+export interface ListUsersFilters {
+  /** Texto que puede ser nombre o id. */
+  search?: string;
+  /** Identificador directo cuando el usuario lo especifica. */
+  id?: string;
+  /** Alias para mantener compatibilidad con query ?name= */
+  name?: string;
+  status?: UserStatus;
+  limit?: number;
 }

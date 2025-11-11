@@ -1,7 +1,6 @@
 import { logout } from "@/apps/auth/services/auth";
 import { getUserByToken } from "@/apps/auth/services/authService";
-import Header from "@/components/layouts/header/Header";
-import TabBar from "@/components/layouts/header/TabBar";
+import { Header, TabBar } from "@/components/layouts";
 import useStore from "@/store/useStore";
 import { useCallback, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
@@ -11,7 +10,6 @@ import { PUBLICROUTES } from "./public.routes";
 const PrivateLayout = () => {
   const { token } = useStore((store) => store.authState.auth);
   const setCurrentUser = useStore((store) => store.authState.setCurrentUser);
-  const showSnackbar = useStore((state) => state.showSnackbar);
 
   const navigate = useNavigate();
 
@@ -19,8 +17,6 @@ const PrivateLayout = () => {
     const res = await getUserByToken();
 
     if (!res.success) {
-      showSnackbar(res.error, "error");
-
       if (
         typeof res.error === "string" &&
         res.error
@@ -38,7 +34,7 @@ const PrivateLayout = () => {
     }
 
     setCurrentUser(res.data);
-  }, [navigate, setCurrentUser, showSnackbar]);
+  }, [navigate, setCurrentUser]);
 
   useEffect(() => {
     getUser();
@@ -51,8 +47,8 @@ const PrivateLayout = () => {
       <div className={`min-h-screen w-full transition-all duration-300`}>
         <Header />
 
-        <div className={`flex min-h-[calc(100vh-112px)] w-full justify-center`}>
-          <section className="h-[calc(100vh-112px)] w-full max-w-[1464px] overflow-auto">
+        <div className={`flex min-h-[calc(100vh-120px)] w-full justify-center`}>
+          <section className="h-[calc(100vh-120px)] w-full overflow-auto">
             <Outlet />
           </section>
         </div>

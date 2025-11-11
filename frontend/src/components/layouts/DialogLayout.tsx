@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SOFTWARE_THEME } from "@/config";
 import {
   type Breakpoint,
   Dialog,
@@ -37,16 +36,20 @@ interface DialogLayoutProps extends DialogProps {
 }
 
 const DialogCSS = styled(Dialog)(({ theme }) => ({
-  "& .MuiDialogContent-root": {
-    padding: "16px 12px ",
+  "& .MuiPaper-root": {
+    margin: 16,
+    borderRadius: 24,
+    border: "1px solid #F3F4F6",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
     [theme.breakpoints.up("md")]: {
-      padding: "16px 20px",
+      margin: 32,
+      borderRadius: 28,
     },
   },
-  "& .css-pdteti-MuiPaper-root-MuiDialog-paper": {
-    margin: "16px",
+  "& .MuiDialogContent-root": {
+    padding: "16px 16px",
     [theme.breakpoints.up("md")]: {
-      margin: "32px",
+      padding: "20px 24px",
     },
   },
 }));
@@ -96,14 +99,13 @@ const DialogLayout = (props: DialogLayoutProps) => {
     >
       <DialogTitle
         sx={{
-          background: SOFTWARE_THEME.primary,
-          color: "white",
-          textAlign: "center",
           py: 2,
-          mb: 2,
+          px: 3,
+          mb: 0,
+          borderBottom: "1px solid #F3F4F6",
         }}
       >
-        <Typography variant="h5" component="div">
+        <Typography variant="h6" component="div" sx={{ fontWeight: 700 }}>
           {title}
         </Typography>
       </DialogTitle>
@@ -111,7 +113,13 @@ const DialogLayout = (props: DialogLayoutProps) => {
       <DialogContent>{children}</DialogContent>
 
       {!hideActions && (
-        <DialogActionsBetween>
+        <DialogActionsBetween
+          sx={{
+            borderTop: "1px solid #F3F4F6",
+            paddingTop: 2,
+            paddingBottom: 2,
+          }}
+        >
           <Button.Error onClick={handleClose} fullWidth={fullWidthCancelButton}>
             {cancelButtonText || "Cancelar"}
           </Button.Error>

@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 import { UpsertDayMoodDto } from "./moods.interface";
 import * as service from "./moods.service";
+import { HttpError } from "./moods.service";
 import { MoodRouteLocals } from "./moods.types";
 
 /** Helpers */
@@ -69,6 +70,33 @@ export async function listYearMoodsController(
   }
 }
 
+/** GET /api/users/:id/moods/analytics */
+export async function getMoodAnalyticsController(
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { moodParams } = getLocals(res);
+    if (!moodParams?.uid) {
+      return badRequest(res);
+    }
+
+    const analytics = await service.getMoodAnalytics(moodParams.uid, {
+      month: moodParams.yyyymm,
+      range: moodParams.range,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Análisis emocional generado correctamente",
+      data: analytics,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 /** PUT/PATCH /api/users/:id/moods/month/:yyyymm/days/:day */
 export const upsertDayMoodController = async (
   req: Request,
@@ -85,8 +113,8 @@ export const upsertDayMoodController = async (
       data: result,
     });
   } catch (error: any) {
-    if (error.message.includes("Maximum number")) {
-      return res.status(400).json({
+    if (error instanceof HttpError) {
+      return res.status(error.status).json({
         success: false,
         error: error.message,
       });
@@ -147,8 +175,8 @@ export const deleteDayMoodController = async (
       message: "Mood deleted successfully",
     });
   } catch (error: any) {
-    if (error.message.includes("not found")) {
-      return res.status(404).json({
+    if (error instanceof HttpError) {
+      return res.status(error.status).json({
         success: false,
         error: error.message,
       });

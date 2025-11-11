@@ -26,3 +26,50 @@ export interface Mood {
   textColor?: string;
   valencia?: number;
 }
+
+export type MoodTone = "positivo" | "negativo" | "neutral";
+
+export interface MoodTimelineMood {
+  moodId: string;
+  tone: MoodTone;
+  at: string | null;
+  note?: string | null;
+}
+
+export interface MoodTimelineEntry {
+  date: string;
+  dayScore: number;
+  moods: MoodTimelineMood[];
+}
+
+export interface MoodAnalytics {
+  period: {
+    focusMonth: string;
+    months: string[];
+    from: string;
+    to: string;
+  };
+  summary: {
+    totalEntries: number;
+    daysTracked: number;
+    uniqueMoods: number;
+    currentStreak: number;
+    longestStreak: number;
+    lastEntryAt: string | null;
+  };
+  sentiment: {
+    positive: number;
+    neutral: number;
+    negative: number;
+    wellbeingScore: number;
+    riskScore: number;
+  };
+  topMoods: Array<{
+    moodId: string;
+    label: string;
+    tone: MoodTone;
+    count: number;
+    percentage: number;
+  }>;
+  timeline: MoodTimelineEntry[];
+}

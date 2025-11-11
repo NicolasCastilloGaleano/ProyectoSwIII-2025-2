@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { axiosAPI } from "@/services/axiosAPI";
 import type { APIResponse, SafeResponse } from "@/services/common.interface";
-import type { Mood } from "./mood.interface";
+import type { Mood, MoodAnalytics } from "./mood.interface";
 
 const MOOD_ENDPOINT = "/users/{USERID}/moods";
 
@@ -46,6 +46,41 @@ export const createMoods = async ({
       error:
         e?.response?.data?.error ||
         "Ocurrió un error inesperado con la creación.",
+    };
+  }
+};
+
+export const getMoodAnalytics = async (
+  userId: string,
+  params: { month?: string; range?: number } = {},
+): Promise<SafeResponse<MoodAnalytics>> => {
+  if (!userId) {
+    return {
+      success: false,
+      error: "No se puede cargar el análisis sin un usuario válido.",
+    };
+  }
+
+  try {
+    const path = MOOD_ENDPOINT.replace("{USERID}", userId);
+    const response = await axiosAPI.get<APIResponse<MoodAnalytics>>(
+      `${path}/analytics`,
+      {
+        params,
+      },
+    );
+
+    return {
+      success: true,
+      data: response.data.data,
+      message: response.data.message ?? "Análisis emocional generado.",
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error:
+        error?.response?.data?.error ??
+        "No fue posible calcular el análisis emocional.",
     };
   }
 };
