@@ -21,13 +21,10 @@ const Header = () => {
   return (
     <header
       role="banner"
-      className="flex justify-center px-4"
-      style={{
-        background: `linear-gradient(0deg, ${SOFTWARE_THEME.secondary}, ${SOFTWARE_THEME.primary})`,
-      }}
+      className="sticky top-0 z-40 flex justify-center border-b border-gray-100 bg-white/80 px-4 backdrop-blur supports-backdrop-filter:bg-white/60"
     >
       <Container className="p-0" maxWidth="lg" sx={{ gap: 4 }}>
-        <div className="flex h-12 items-center gap-4 sm:gap-6">
+        <div className="flex h-14 items-center gap-3 sm:gap-6">
           <div className="grow" />
 
           <Tooltip title="Cerrar sesión">
@@ -35,9 +32,10 @@ const Header = () => {
               aria-label="Cerrar sesión"
               onClick={handleLogout}
               sx={{
-                color: "white",
-                border: "1px solid rgba(255,255,255,0.3)",
-                "&:hover": { backgroundColor: "rgba(255,255,255,0.15)" },
+                color: SOFTWARE_THEME.primary,
+                border: "1px solid rgba(99,102,241,0.2)",
+                backgroundColor: "transparent",
+                "&:hover": { backgroundColor: "rgba(99,102,241,0.08)" },
               }}
             >
               <LogoutRounded />
