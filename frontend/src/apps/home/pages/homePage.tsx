@@ -1,94 +1,164 @@
 import { CreateMoodModal } from "@/apps/moods/components";
 import { moods } from "@/apps/moods/data/moods";
-import { useState } from "react";
-import useStore from "../../../store/useStore";
+import type { MoodTimelineEntry } from "@/apps/moods/services/mood.interface";
+import { PRIVATEROUTES } from "@/routes/private.routes";
+import useStore from "@/store/useStore";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  AnalyticsSummaryCard,
+  HeroTodayCard,
+  MonthlyMoodCalendar,
+  MoodDonutCard,
+  MoodHeatmapBoard,
+  MoodTimelineBoard,
+  QuickActionsRow,
+  TopMoodsBoard,
+} from "../components";
+
+const padMonth = (month: number) => String(month).padStart(2, "0");
 
 export default function HomePage() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const calendarRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
+  const focusMonth = `${today.getFullYear()}-${padMonth(today.getMonth() + 1)}`;
 
-  const { getMoodsForDate } = useStore((s) => s.moodsState);
-
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-
-  const renderCalendar = () => (
-    <div className="mt-6 grid grid-cols-7 gap-2 text-center">
-      {["D", "L", "M", "M", "J", "V", "S"].map((d, index) => (
-        <div key={index} className="text-sm font-semibold text-gray-500">
-          {d}
-        </div>
-      ))}
-
-      {Array.from({ length: firstDay }).map((_, i) => (
-        <div key={`blank-${i}`} />
-      ))}
-
-      {daysArray.map((day) => {
-        const date = new Date(year, month, day);
-        const dateKey = date.toLocaleDateString("en-CA");
-        const moodIds = getMoodsForDate(dateKey);
-        const isToday = dateKey === new Date().toLocaleDateString("en-CA");
-
-        const moodIcons = moodIds
-          .map((id) => {
-            const m = moods.find((mm) => mm.moodId === id);
-
-            if (!m) return null;
-
-            return (
-              m.Icon && (
-                <m.Icon key={`${dateKey}-${id}`} className={m.textColor} />
-              )
-            );
-          })
-          .filter(Boolean);
-
-        return (
-          <div
-            key={day}
-            className={`flex h-20 flex-col items-center justify-center rounded-xl border p-2 ${
-              isToday ? "border-blue-400 bg-blue-50" : "border-gray-200"
-            }`}
-            onClick={() => isToday && setIsOpen(true)}
-          >
-            <span className="text-sm font-semibold text-gray-600">{day}</span>
-            <div className="mt-1 flex space-x-1">
-              {moodIcons.length > 0 ? (
-                moodIcons
-              ) : (
-                <span className="text-gray-300">-</span>
-              )}
-            </div>
-          </div>
-        );
-      })}
-    </div>
+  const { auth } = useStore((state) => state.authState);
+  const { analytics, analyticsLoading, loadAnalytics } = useStore(
+    (state) => state.moodsState,
   );
 
-  return (
-    <div className="flex flex-row">
-      <div className="w-screen px-2 py-4 md:px-8">
-        <h1 className="mb-2 text-2xl font-bold text-gray-800">Bienvenido</h1>
-        <p className="mb-4 text-gray-600">Selecciona cómo te sientes hoy.</p>
+  useEffect(() => {
+    if (!auth.currentUser?.id) return;
+    void loadAnalytics({
+      userId: auth.currentUser.id,
+      month: focusMonth,
+      range: 3,
+    });
+  }, [auth.currentUser?.id, focusMonth, loadAnalytics]);
 
-        {/* calendario */}
-        <div className="bg-white p-0 md:p-6">
-          <h2 className="mb-4 text-lg font-semibold text-gray-700">
-            Historial emocional -{" "}
-            {today.toLocaleString("es-ES", { month: "long", year: "numeric" })}
-          </h2>
-          {renderCalendar()}
+  const moodDictionary = useMemo(
+    () => new Map(moods.map((item) => [item.moodId, item])),
+    [],
+  );
+
+  const heroAccent = auth.currentUser?.accentColor ?? "#6366F1";
+  const heroAvatar = auth.currentUser?.photoURL ?? null;
+  const heroDisplayName =
+    auth.currentUser?.name ?? auth.currentUser?.email ?? "Bienvenido";
+
+  const timeline = useMemo<MoodTimelineEntry[]>(() => {
+    if (!analytics?.timeline) return [];
+    return analytics.timeline.slice(-9).reverse();
+  }, [analytics]);
+
+  const heatmapData = useMemo<MoodTimelineEntry[]>(() => {
+    if (!analytics?.timeline) return [];
+    return analytics.timeline.slice(-24);
+  }, [analytics]);
+
+  const timelineMap = useMemo(() => {
+    const map = new Map<string, MoodTimelineEntry>();
+    analytics?.timeline.forEach((entry) => map.set(entry.date, entry));
+    return map;
+  }, [analytics]);
+
+  const sentiment = analytics?.sentiment ?? {
+    positive: 0,
+    neutral: 0,
+    negative: 0,
+    wellbeingScore: 0,
+    riskScore: 0,
+  };
+
+  const availableMonths = analytics?.period.months ?? [focusMonth];
+  const [selectedMonth, setSelectedMonth] = useState(focusMonth);
+
+  useEffect(() => {
+    if (!availableMonths.includes(selectedMonth)) {
+      setSelectedMonth(focusMonth);
+    }
+  }, [availableMonths, focusMonth, selectedMonth]);
+
+  const handleMonthChange = (direction: "prev" | "next") => {
+    if (!availableMonths.length) return;
+    const index = availableMonths.indexOf(selectedMonth);
+    if (index === -1) {
+      setSelectedMonth(availableMonths[availableMonths.length - 1]);
+      return;
+    }
+    if (direction === "prev" && index > 0) {
+      setSelectedMonth(availableMonths[index - 1]);
+    }
+    if (direction === "next" && index < availableMonths.length - 1) {
+      setSelectedMonth(availableMonths[index + 1]);
+    }
+  };
+
+  return (
+    <div className="space-y-8 px-2 py-6 md:px-8">
+      <section className="grid gap-6 lg:grid-cols-3">
+        <HeroTodayCard
+          onCreateMood={() => setIsModalOpen(true)}
+          analytics={analytics}
+          loading={analyticsLoading}
+          accentColor={heroAccent}
+          avatar={heroAvatar}
+          displayName={heroDisplayName}
+        />
+
+        <AnalyticsSummaryCard
+          analytics={analytics}
+          loading={analyticsLoading}
+        />
+      </section>
+
+      <QuickActionsRow
+        onPatients={() => navigate(PRIVATEROUTES.USERS_LIST)}
+        onInsights={() => navigate(PRIVATEROUTES.ANALYTICS)}
+        onCalendar={() =>
+          calendarRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          })
+        }
+      />
+
+      <section ref={calendarRef} className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <MonthlyMoodCalendar
+            month={selectedMonth}
+            timelineMap={timelineMap}
+            moodDictionary={moodDictionary}
+            onPrev={() => handleMonthChange("prev")}
+            onNext={() => handleMonthChange("next")}
+          />
         </div>
 
-        {isOpen && (
-          <CreateMoodModal onClose={() => setIsOpen(false)} open={isOpen} />
-        )}
-      </div>
+        <MoodDonutCard sentiment={sentiment} />
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-3">
+        <MoodTimelineBoard
+          timeline={timeline}
+          moodDictionary={moodDictionary}
+          loading={analyticsLoading}
+        />
+
+        <MoodHeatmapBoard data={heatmapData} loading={analyticsLoading} />
+
+        <TopMoodsBoard analytics={analytics} loading={analyticsLoading} />
+      </section>
+
+      {isModalOpen && (
+        <CreateMoodModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -17,6 +17,9 @@ export const userConverter: FirestoreDataConverter<UserDoc> = {
       status: d.status,
       phone: d.phone ?? null,
       photoURL: d.photoURL ?? null,
+      accentColor: d.accentColor ?? null,
+      searchableName: d.searchableName,
+      searchTokens: Array.isArray(d.searchTokens) ? d.searchTokens : undefined,
       createdAt: d.createdAt,
       updatedAt: d.updatedAt,
     };

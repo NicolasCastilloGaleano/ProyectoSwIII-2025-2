@@ -1,3 +1,4 @@
+import { SOFTWARE_THEME } from "@/config";
 import { CircularProgress } from "@mui/material";
 
 interface LoadingRouteProps {
@@ -9,7 +10,7 @@ const LoadingRoute = ({ fullScreen }: LoadingRouteProps) => {
     <div
       className={`${fullScreen ? "h-screen" : "h-[calc(100vh-160px)]"} flex w-full items-center justify-center`}
     >
-      <CircularProgress sx={{ color: "#02afb4" }} />
+      <CircularProgress sx={{ color: SOFTWARE_THEME.primary }} />
     </div>
   );
 };

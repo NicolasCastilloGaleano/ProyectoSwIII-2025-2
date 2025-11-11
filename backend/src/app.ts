@@ -34,9 +34,21 @@ export function createApp() {
     }),
   );
 
+  const requestBodyLimit =
+    process.env.REQUEST_BODY_LIMIT?.trim() || "2mb";
+
   // Middlewares base
-  app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(
+    bodyParser.json({
+      limit: requestBodyLimit,
+    }),
+  );
+  app.use(
+    bodyParser.urlencoded({
+      extended: true,
+      limit: requestBodyLimit,
+    }),
+  );
 
   // Health
   app.get("/", (_req, res) => res.send("Backend is running"));

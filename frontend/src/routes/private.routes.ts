@@ -3,6 +3,7 @@ import type { RouteConfig } from "./route.interface";
 
 export enum PRIVATEROUTES {
   HOMEPAGE = "/home",
+  ANALYTICS = "/insights",
   IMPROVEMENTPLAN = "/improvementplan",
   PROFILEPAGE = "/profile",
   USERS_BASE = "/users",
@@ -19,6 +20,10 @@ export const PrivateRoutes: RouteConfig[] = [
     path: PRIVATEROUTES.HOMEPAGE,
   },
   {
+    element: lazy(() => import("@/apps/home/pages/insightsPage")),
+    path: PRIVATEROUTES.ANALYTICS,
+  },
+  {
     element: lazy(() => import("@/apps/home/pages/improvementPlan")),
     path: PRIVATEROUTES.IMPROVEMENTPLAN,
   },
@@ -33,6 +38,14 @@ export const PrivateRoutes: RouteConfig[] = [
       {
         path: "list",
         element: lazy(() => import("@/apps/users/pages/ListUsers")),
+      },
+      {
+        path: "create",
+        element: lazy(() => import("@/apps/users/pages/ManageUser")),
+      },
+      {
+        path: "edit/:id",
+        element: lazy(() => import("@/apps/users/pages/ManageUser")),
       },
     ],
   },

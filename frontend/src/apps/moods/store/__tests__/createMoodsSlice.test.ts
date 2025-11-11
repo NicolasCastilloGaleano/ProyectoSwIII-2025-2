@@ -1,19 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore } from "zustand/vanilla";
-import createMoodsSlice, {
-  type MoodsSlice,
-} from "../createMoodsSlice";
-import { createMoods, type CreateMood } from "../../services/mood.service";
+import createMoodsSlice, { type MoodsSlice } from "../createMoodsSlice";
+import {
+  createMoods,
+  getMoodAnalytics,
+  type CreateMood,
+} from "../../services/mood.service";
 
 /**
- * Pruebas unitarias para la gestión de emociones en el store de Zustand.
- * Se validan reglas de negocio sin requerir modificaciones en el slice original.
+ * Pruebas unitarias para la gestion de emociones almacenadas en el store.
  */
 vi.mock("../../services/mood.service", () => ({
   createMoods: vi.fn(),
+  getMoodAnalytics: vi.fn(),
 }));
 
 const createMoodsMock = createMoods as unknown as ReturnType<typeof vi.fn>;
+const getMoodAnalyticsMock =
+  getMoodAnalytics as unknown as ReturnType<typeof vi.fn>;
 
 const buildPayload = (moods: string[]): CreateMood => ({
   day: "05",
@@ -28,28 +32,27 @@ const setupStore = () =>
     ...createMoodsSlice(...args),
   }));
 
-describe("createMoodsSlice - Gestión de emociones", () => {
+describe("createMoodsSlice", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2024-08-05T12:00:00Z"));
     vi.clearAllMocks();
   });
 
-  it("rechaza solicitudes sin emociones válidas", async () => {
+  it("rechaza solicitudes sin emociones validas", async () => {
     const store = setupStore();
     const response = await store
       .getState()
       .moodsState.addMoodsForToday(buildPayload([]));
 
+    expect(response.success).toBe(false);
     if (!response.success) {
-      expect(response.error).toMatch(/emociones/i);
-    } else {
-      throw new Error("Se esperaba respuesta con éxito = false");
+      expect(response.error).toMatch(/emocion/i);
     }
     expect(createMoodsMock).not.toHaveBeenCalled();
   });
 
-  it("registra emociones nuevas y persiste en el historial del día", async () => {
+  it("registra emociones nuevas y actualiza el historial del dia", async () => {
     const store = setupStore();
     createMoodsMock.mockResolvedValue({
       success: true,
@@ -71,7 +74,22 @@ describe("createMoodsSlice - Gestión de emociones", () => {
     ).toEqual(["feliz", "calma"]);
   });
 
-  it("limita el registro a tres emociones por día", async () => {
+  it("impide registrar mas de tres emociones por dia", async () => {
+    const store = setupStore();
+    const response = await store
+      .getState()
+      .moodsState.addMoodsForToday(
+        buildPayload(["feliz", "calma", "motivado", "agradecido"]),
+      );
+
+    expect(response.success).toBe(false);
+    if (!response.success) {
+      expect(response.error).toMatch(/solo puedes escoger/i);
+    }
+    expect(createMoodsMock).not.toHaveBeenCalled();
+  });
+
+  it("reemplaza las emociones existentes cuando se guarda nuevamente", async () => {
     const store = setupStore();
     const todayKey = new Date().toLocaleDateString("en-CA");
 
@@ -89,22 +107,20 @@ describe("createMoodsSlice - Gestión de emociones", () => {
     createMoodsMock.mockResolvedValue({
       success: true,
       data: null,
-      message: "Registro parcial",
+      message: "Actualizado",
     });
 
     const response = await store
       .getState()
-      .moodsState.addMoodsForToday(buildPayload(["agradecido", "enojado"]));
+      .moodsState.addMoodsForToday(buildPayload(["agradecido"]));
 
     expect(response).toMatchObject({
       success: true,
-      message: expect.stringContaining("Se limitaron a 3 emociones"),
+      message: "Actualizado",
     });
-
-    const stored = store
-      .getState()
-      .moodsState.moods.moodHistory[todayKey];
-    expect(stored).toEqual(["feliz", "calma", "agradecido"]);
+    expect(
+      store.getState().moodsState.moods.moodHistory[todayKey],
+    ).toEqual(["agradecido"]);
   });
 
   it("restablece el estado si la API responde con error", async () => {
@@ -118,15 +134,77 @@ describe("createMoodsSlice - Gestión de emociones", () => {
       .getState()
       .moodsState.addMoodsForToday(buildPayload(["feliz"]));
 
+    expect(response.success).toBe(false);
     if (!response.success) {
       expect(response.error).toBe("Error inesperado");
-    } else {
-      throw new Error("Se esperaba respuesta con éxito = false");
     }
 
     const todayKey = new Date().toLocaleDateString("en-CA");
     expect(
       store.getState().moodsState.moods.moodHistory[todayKey],
     ).toEqual([]);
+  });
+
+  it("carga el analisis emocional y replica el timeline en el historial", async () => {
+    const store = setupStore();
+
+    getMoodAnalyticsMock.mockResolvedValue({
+      success: true,
+      data: {
+        period: {
+          focusMonth: "2025-02",
+          months: ["2024-12", "2025-01", "2025-02"],
+          from: "2024-12-01",
+          to: "2025-02-28",
+        },
+        summary: {
+          totalEntries: 5,
+          daysTracked: 4,
+          uniqueMoods: 3,
+          currentStreak: 2,
+          longestStreak: 3,
+          lastEntryAt: "2025-02-14T13:00:00Z",
+        },
+        sentiment: {
+          positive: 60,
+          neutral: 20,
+          negative: 20,
+          wellbeingScore: 70,
+          riskScore: 30,
+        },
+        topMoods: [],
+        timeline: [
+          {
+            date: "2025-02-01",
+            dayScore: 0.4,
+            moods: [
+              { moodId: "feliz", tone: "positivo", at: null, note: null },
+            ],
+          },
+        ],
+      },
+      message: "OK",
+    });
+
+    const response = await store
+      .getState()
+      .moodsState.loadAnalytics({ userId: "user-123", month: "2025-02" });
+
+    expect(response.success).toBe(true);
+    expect(store.getState().moodsState.analyticsLoading).toBe(false);
+    expect(store.getState().moodsState.analytics).toBeTruthy();
+    expect(
+      store.getState().moodsState.moods.moodHistory["2025-02-01"],
+    ).toEqual(["feliz"]);
+  });
+
+  it("retorna error si no se proporciona userId al cargar analytics", async () => {
+    const store = setupStore();
+    const response = await store
+      .getState()
+      .moodsState.loadAnalytics({ userId: "" });
+
+    expect(response.success).toBe(false);
+    expect(getMoodAnalyticsMock).not.toHaveBeenCalled();
   });
 });

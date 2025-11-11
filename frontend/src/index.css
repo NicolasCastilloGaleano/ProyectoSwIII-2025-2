@@ -13,3 +13,31 @@
 body {
   font-family: "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
+
+.hero-glow {
+  width: 130%;
+  height: 130%;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.45), transparent 55%),
+    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.35), transparent 60%),
+    radial-gradient(circle at 10% 80%, rgba(255, 255, 255, 0.25), transparent 65%);
+  position: absolute;
+  inset: -15%;
+  animation: heroGlow 20s linear infinite;
+  filter: blur(60px);
+}
+
+.shadow-soft {
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.08);
+}
+
+@keyframes heroGlow {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

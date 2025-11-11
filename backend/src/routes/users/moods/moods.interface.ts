@@ -1,43 +1,67 @@
-export interface Mood {
-  id: string;
-  userId: string;
-  emotion: string;
+export interface MoodSelection {
+  moodId: string;
   note?: string;
-  createdAt?: string;
-  [key: string]: any;
-}
-
-export interface ApiResponse<T = any> {
-  success: boolean;
-  message?: string;
-  error?: string;
-  data?: T;
-}
-
-export interface DayMood {
-  emotion: string;
-  note?: string;
-  createdAt: string;
-  id: string; // Unique identifier for each emotion entry
-}
-
-export interface DayMoods {
-  userId: string;
-  date: string; // YYYY-MM-DD
-  moods: DayMood[];
+  /**
+   * Momento en el que el paciente registr�� la emoci��n (ISO8601).
+   * Si no se env��a, el backend asignar�� la hora actual.
+   */
+  at?: string;
 }
 
 export interface UpsertDayMoodDto {
-  moods: Mood[];
-}
-export interface Mood {
-  moodId: string;
-  note?: string;
+  moods: MoodSelection[];
 }
 
 export interface DeleteDayMoodParams {
   userId: string;
   yyyymm: string;
   day: string;
-  moodId: string; // Added to identify which emotion to delete
+  moodId: string;
+}
+
+export type MoodTone = "positivo" | "negativo" | "neutral";
+
+export interface MoodTimelineEntry {
+  date: string; // YYYY-MM-DD
+  dayScore: number;
+  moods: Array<{
+    moodId: string;
+    tone: MoodTone;
+    at: string | null;
+    note?: string | null;
+  }>;
+}
+
+export interface MoodAnalyticsSummary {
+  totalEntries: number;
+  daysTracked: number;
+  uniqueMoods: number;
+  currentStreak: number;
+  longestStreak: number;
+  lastEntryAt: string | null;
+}
+
+export interface MoodAnalytics {
+  period: {
+    focusMonth: string;
+    months: string[];
+    from: string;
+    to: string;
+  };
+  summary: MoodAnalyticsSummary;
+  sentiment: {
+    positive: number;
+    neutral: number;
+    negative: number;
+    wellbeingScore: number;
+    riskScore: number;
+  };
+  topMoods: Array<{
+    moodId: string;
+    label: string;
+    tone: MoodTone;
+    count: number;
+    percentage: number;
+  }>;
+  timeline: MoodTimelineEntry[];
 }

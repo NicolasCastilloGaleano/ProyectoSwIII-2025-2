@@ -22,6 +22,13 @@ router.param("yyyy", validations.validateYearParam);
 /** ---- Rutas de MES ---- */
 router.get("/month/:yyyymm", controller.getMonthMoodsController);
 
+/** ---- Analytics ---- */
+router.get(
+  "/analytics",
+  validations.validateAnalyticsQuery,
+  controller.getMoodAnalyticsController,
+);
+
 /** ---- Rutas de AÑO ---- */
 router.get("/year/:yyyy", controller.listYearMoodsController);
 

@@ -1,6 +1,12 @@
 import type { SafeResponse } from "@/services/common.interface";
 import type { StateCreator } from "zustand";
-import { createMoods, type CreateMood } from "../services/mood.service";
+import {
+  createMoods,
+  getMoodAnalytics,
+  type CreateMood,
+  type MoodDTO,
+} from "../services/mood.service";
+import type { MoodAnalytics } from "../services/mood.interface";
 
 interface Moods {
   moodHistory: Record<string, string[]>; // dateKey -> moodIds[]
@@ -11,8 +17,15 @@ type LoadingKind = "add" | "remove" | null;
 interface MoodsState {
   moods: Moods;
   loadingMoods: LoadingKind;
+  analytics: MoodAnalytics | null;
+  analyticsLoading: boolean;
   addMoodsForToday: (props: CreateMood) => Promise<SafeResponse<null>>;
   getMoodsForDate: (date: string) => string[];
+  loadAnalytics: (payload: {
+    userId: string;
+    month?: string;
+    range?: number;
+  }) => Promise<SafeResponse<MoodAnalytics | null>>;
 }
 
 export interface MoodsSlice {
@@ -20,56 +33,51 @@ export interface MoodsSlice {
 }
 
 const todayKey = () => new Date().toLocaleDateString("en-CA");
+const MAX_MOODS_PER_DAY = 3;
+
+const sanitizeMoodPayload = (moods?: MoodDTO[]) => {
+  const seen = new Set<string>();
+  const sanitized: MoodDTO[] = [];
+  (moods ?? []).forEach((mood) => {
+    const id = mood?.moodId?.trim();
+    if (!id || seen.has(id)) return;
+    seen.add(id);
+    sanitized.push({ ...mood, moodId: id });
+  });
+  return sanitized.slice(0, MAX_MOODS_PER_DAY);
+};
 
 export const createMoodsSlice: StateCreator<MoodsSlice> = (set, get) => ({
   moodsState: {
     moods: { moodHistory: {} },
     loadingMoods: null,
+    analytics: null,
+    analyticsLoading: false,
 
     addMoodsForToday: async (
       props: CreateMood,
     ): Promise<SafeResponse<null>> => {
       const today = todayKey();
-      const state = get().moodsState;
-      const current = state.moods.moodHistory[today] ?? [];
+      const sanitizedMoods = sanitizeMoodPayload(props.moods);
+      const validCount = (props.moods ?? []).filter((m) => m?.moodId).length;
 
-      // extrae ids del payload y normaliza
-      const incomingIds = Array.from(
-        new Set((props.moods ?? []).map((m) => m.moodId).filter(Boolean)),
-      );
-
-      if (incomingIds.length === 0) {
-        return { success: false, error: "No se enviaron emociones válidas." };
-      }
-
-      // filtra los que ya existen
-      const newIds = incomingIds.filter((id) => !current.includes(id));
-      if (newIds.length === 0) {
+      if (sanitizedMoods.length === 0) {
         return {
           success: false,
-          error: "No hay emociones nuevas por agregar.",
+          error: "Debes seleccionar al menos una emocion valida.",
         };
       }
 
-      // tope de 3
-      if (current.length >= 3) {
+      if (validCount > MAX_MOODS_PER_DAY) {
         return {
           success: false,
-          error: "Solo puedes escoger hasta 3 emociones por día.",
+          error: "Solo puedes escoger hasta 3 emociones por dia.",
         };
       }
 
-      // recorta si excede el máximo permitido
-      const availableSlots = 3 - current.length;
-      const idsToAdd = newIds.slice(0, availableSlots);
+      const snapshot = get().moodsState.moods.moodHistory[today] ?? [];
+      const nextIds = sanitizedMoods.map((m) => m.moodId);
 
-      // si algunas quedaron por fuera, lo reportamos pero igual intentamos agregar las posibles
-      const willTruncate = newIds.length > idsToAdd.length;
-
-      const snapshot = current;
-      const optimisticNext = [...current, ...idsToAdd];
-
-      // optimistic update
       set((prev) => ({
         moodsState: {
           ...prev.moodsState,
@@ -78,18 +86,19 @@ export const createMoodsSlice: StateCreator<MoodsSlice> = (set, get) => ({
             ...prev.moodsState.moods,
             moodHistory: {
               ...prev.moodsState.moods.moodHistory,
-              [today]: optimisticNext,
+              [today]: nextIds,
             },
           },
         },
       }));
 
       try {
-        // Llamada real al API (batch)
-        const res = await createMoods(props);
+        const res = await createMoods({
+          ...props,
+          moods: sanitizedMoods,
+        });
 
         if (!res?.success) {
-          // rollback
           set((prev) => ({
             moodsState: {
               ...prev.moodsState,
@@ -109,7 +118,6 @@ export const createMoodsSlice: StateCreator<MoodsSlice> = (set, get) => ({
           };
         }
 
-        // éxito
         set((prev) => ({
           moodsState: {
             ...prev.moodsState,
@@ -117,15 +125,12 @@ export const createMoodsSlice: StateCreator<MoodsSlice> = (set, get) => ({
           },
         }));
 
-        const baseMessage =
-          res.message ?? "Emociones registradas correctamente.";
-        const message = willTruncate
-          ? `${baseMessage} (Se limitaron a 3 emociones para hoy).`
-          : baseMessage;
-
-        return { success: true, data: null, message };
+        return {
+          success: true,
+          data: null,
+          message: res.message ?? "Emociones registradas correctamente.",
+        };
       } catch {
-        // rollback on exception
         set((prev) => ({
           moodsState: {
             ...prev.moodsState,
@@ -148,6 +153,61 @@ export const createMoodsSlice: StateCreator<MoodsSlice> = (set, get) => ({
 
     getMoodsForDate: (date: string) =>
       get().moodsState.moods.moodHistory[date] ?? [],
+
+    loadAnalytics: async ({ userId, month, range }) => {
+      if (!userId) {
+        return {
+          success: false,
+          error: "No se puede cargar el análisis sin usuario.",
+        };
+      }
+
+      set((prev) => ({
+        moodsState: {
+          ...prev.moodsState,
+          analyticsLoading: true,
+        },
+      }));
+
+      const response = await getMoodAnalytics(userId, { month, range });
+
+      if (!response.success) {
+        set((prev) => ({
+          moodsState: {
+            ...prev.moodsState,
+            analyticsLoading: false,
+          },
+        }));
+
+        return { success: false, error: response.error };
+      }
+
+      const timelineHistory: Record<string, string[]> = {};
+      response.data?.timeline?.forEach((entry) => {
+        timelineHistory[entry.date] = entry.moods.map((m) => m.moodId);
+      });
+
+      set((prev) => ({
+        moodsState: {
+          ...prev.moodsState,
+          analyticsLoading: false,
+          analytics: response.data,
+          moods: {
+            ...prev.moodsState.moods,
+            moodHistory: {
+              ...prev.moodsState.moods.moodHistory,
+              ...timelineHistory,
+            },
+          },
+        },
+      }));
+
+      return {
+        success: true,
+        data: response.data,
+        message: response.message ?? "Análisis generado.",
+      };
+    },
   },
 });
 
