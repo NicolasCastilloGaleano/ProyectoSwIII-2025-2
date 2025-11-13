@@ -1,12 +1,11 @@
 import useStore from "@/store/useStore";
 import React from "react";
 import { Navigate } from "react-router-dom";
-import { PermissionLoading } from "./PermissionLoading";
+import LoadingRoute from "./LoadingRoute";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   redirectTo?: string;
-  loadingComponent?: React.ReactNode;
   requireAuth?: boolean; // si exige estar logueado aunque no pida permisos
 }
 
@@ -19,12 +18,11 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   redirectTo = "/",
-  loadingComponent = <PermissionLoading />,
   requireAuth = true,
 }) => {
   const { token, isLoading } = useStore((s) => s.authState.auth);
 
-  if (isLoading) return <>{loadingComponent}</>;
+  if (isLoading) return <LoadingRoute />;
 
   // Si requiere auth y no hay token, fuera
   if (requireAuth && !token) return <Navigate to={redirectTo} replace />;

@@ -9,18 +9,14 @@ type StandardTheme = {
 };
 
 // fallback if company not found
-const defaultTheme: StandardTheme = {
+const SOFTWARE_THEME: StandardTheme = {
   primary: "#142D4C",
-  primaryHover: "#0A5399", //TODO review this color
+  primaryHover: "#1F4574",
   secondary: "#385170",
-  secondaryHover: "#029BA0", //TODO review this color
+  secondaryHover: "#496A92",
   background: "#ECECEC",
   text: "#000000",
   surface: "#606060",
-};
-
-const SOFTWARE_THEME: StandardTheme = {
-  ...defaultTheme,
 };
 
 export default SOFTWARE_THEME;

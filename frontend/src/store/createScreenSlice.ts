@@ -20,15 +20,10 @@ const createScreenSlice: StateCreator<ScreenSlice> = (set) => ({
     },
 
     setCurrentTab: (value: number) =>
-      set((state) => {
-        if (value) {
-          return {
-            ...state,
-            screen: { ...state.screenState.screen, currentTab: value },
-          };
-        }
-        return state;
-      }),
+      set((state) => ({
+        ...state,
+        screen: { ...state.screenState.screen, currentTab: value },
+      })),
   },
 });
 

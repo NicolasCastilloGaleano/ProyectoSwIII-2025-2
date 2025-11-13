@@ -32,7 +32,7 @@ const ChipProfile = () => {
       <Tooltip title={currentUser.name}>
         <Chip
           clickable
-          onClick={() => navigate(PRIVATEROUTES.USERS_PROFILE)}
+          onClick={() => navigate(PRIVATEROUTES.PROFILEPAGE)}
           avatar={
             <Avatar
               src={currentUser.photoURL || undefined}
@@ -44,10 +44,10 @@ const ChipProfile = () => {
           label={getUserLabel()}
           aria-label="Perfil de usuario"
           sx={{
-            backgroundColor: "rgba(255, 255, 255, 0.18)",
-            color: "white",
+            backgroundColor: "rgba(99,102,241,0.08)",
+            color: "#111827",
             fontWeight: 500,
-            backdropFilter: "blur(6px)",
+            border: "1px solid rgba(99,102,241,0.2)",
             "& .MuiChip-avatar": {
               color: SOFTWARE_THEME.primary,
               backgroundColor: "#fff",
