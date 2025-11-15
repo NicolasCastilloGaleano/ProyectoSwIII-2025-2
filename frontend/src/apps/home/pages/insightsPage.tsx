@@ -6,6 +6,7 @@ import TimelineIcon from "@mui/icons-material/Timeline";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PRIVATEROUTES } from "@/routes/private.routes";
+import { useAutomaticDiagnosis } from "../hooks/useAutomaticDiagnosis";
 
 const clampScore = (value: number) => Math.max(-1, Math.min(1, value));
 
@@ -14,6 +15,8 @@ const InsightsPage = () => {
   const { analytics, analyticsLoading, loadAnalytics } = useStore(
     (state) => state.moodsState,
   );
+
+  const { generateDiagnosis } = useAutomaticDiagnosis()
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -223,13 +226,12 @@ const InsightsPage = () => {
                     </td>
                     <td className="py-3 pr-4">
                       <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                          entry.dayScore >= 0.3
-                            ? "bg-emerald-50 text-emerald-700"
-                            : entry.dayScore <= -0.3
-                              ? "bg-rose-50 text-rose-700"
-                              : "bg-amber-50 text-amber-700"
-                        }`}
+                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${entry.dayScore >= 0.3
+                          ? "bg-emerald-50 text-emerald-700"
+                          : entry.dayScore <= -0.3
+                            ? "bg-rose-50 text-rose-700"
+                            : "bg-amber-50 text-amber-700"
+                          }`}
                       >
                         {entry.dayScore.toFixed(2)}
                       </span>
@@ -239,13 +241,12 @@ const InsightsPage = () => {
                         {entry.moods.map((mood) => (
                           <span
                             key={`${entry.date}-${mood.moodId}`}
-                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                              mood.tone === "positivo"
-                                ? "bg-emerald-50 text-emerald-700"
-                                : mood.tone === "negativo"
-                                  ? "bg-rose-50 text-rose-700"
-                                  : "bg-amber-50 text-amber-700"
-                            }`}
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${mood.tone === "positivo"
+                              ? "bg-emerald-50 text-emerald-700"
+                              : mood.tone === "negativo"
+                                ? "bg-rose-50 text-rose-700"
+                                : "bg-amber-50 text-amber-700"
+                              }`}
                           >
                             {mood.moodId}
                           </span>
@@ -258,6 +259,59 @@ const InsightsPage = () => {
           </table>
         </div>
       </section>
+
+
+      <section className="mt-6 rounded-3xl border border-gray-100 bg-white p-6 shadow-soft">
+        <header className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Diagnóstico automático</h2>
+            <p className="text-sm text-gray-500">Análisis basado en tus emociones registradas</p>
+          </div>
+
+        </header>
+
+        <div className="mt-6 flex flex-col items-center text-center">
+          <h3 className={`text-2xl font-semibold ${generateDiagnosis.color}`}>
+            {generateDiagnosis.estado}
+          </h3>
+          <p className="mt-2 max-w-lg text-gray-600">{generateDiagnosis.resumen}</p>
+        </div>
+
+        <div className="mt-6 rounded-2xl bg-gradient-to-b from-gray-50 to-white p-4">
+          <h4 className="mb-2 text-sm font-semibold text-gray-500">
+            Evolución reciente
+          </h4>
+          {sparklinePoints ? (
+            <svg viewBox="0 0 100 50" className="h-32 w-full">
+              <defs>
+                <linearGradient id="diagGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#a5b4fc" stopOpacity="0.7" />
+                  <stop offset="100%" stopColor="#c7d2fe" stopOpacity="0.1" />
+                </linearGradient>
+              </defs>
+              <polygon
+                fill="url(#diagGradient)"
+                points={`${sparklinePoints} 100,50 0,50`}
+              />
+              <polyline
+                fill="none"
+                stroke="#6366f1"
+                strokeWidth="2"
+                points={sparklinePoints}
+              />
+            </svg>
+          ) : (
+            <div className="flex h-32 items-center justify-center text-gray-400">
+              Sin datos suficientes para graficar.
+            </div>
+          )}
+        </div>
+
+        <p className="mt-4 text-xs text-gray-400 text-center">
+          *Este diagnóstico es orientativo y no sustituye una evaluación profesional.*
+        </p>
+      </section>
+
     </Container>
   );
 };
