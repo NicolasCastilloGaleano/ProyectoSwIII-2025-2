@@ -1,7 +1,7 @@
 import { PRIVATEROUTES } from "@/routes/private.routes";
 import useStore from "@/store/useStore";
-import React, { useEffect, useMemo } from "react";
-import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useMemo } from "react";
+import { Link as RouterLink, useLocation } from "react-router-dom";
 
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import ChecklistIcon from "@mui/icons-material/Checklist";
@@ -9,19 +9,8 @@ import HomeIcon from "@mui/icons-material/Home";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import PersonIcon from "@mui/icons-material/Person";
 
-import Tab, { type TabProps } from "@mui/material/Tab";
-import Tabs from "@mui/material/Tabs";
-
-// Tab tipado para RouterLink (soporta `to`)
-type LinkTabProps = TabProps<typeof RouterLink> & { to: string };
-
-function LinkTab(props: LinkTabProps) {
-  return <Tab component={RouterLink} {...props} />;
-}
-
 const TabBar = () => {
   const { pathname } = useLocation();
-  const navigate = useNavigate();
 
   const { screen, setCurrentTab } = useStore((s) => s.screenState);
 
@@ -69,23 +58,36 @@ const TabBar = () => {
     }
   }, [activeIndex, screen.currentTab, setCurrentTab]);
 
-  // Navega cuando el usuario cambia de tab (teclado/gestos)
-  const handleChange = (_e: React.SyntheticEvent, newValue: number) => {
-    const next = tabs[newValue];
-    if (next) navigate(next.to);
-  };
-
   return (
-    <Tabs
-      value={activeIndex}
-      onChange={handleChange}
+    <nav
       aria-label="tab-bar"
-      variant="fullWidth"
+      className="sticky bottom-0 z-40 border-t border-gray-200 bg-white/80 backdrop-blur supports-backdrop-filter:bg-white/60"
     >
-      {tabs.map((t) => (
-        <LinkTab key={t.to} icon={t.icon} label={t.label} to={t.to} />
-      ))}
-    </Tabs>
+      <div className="mx-auto max-w-5xl">
+        <ul className="grid grid-cols-5">
+          {tabs.map((t, idx) => (
+            <li key={t.to} className="contents">
+              <RouterLink
+                to={t.to}
+                onClick={() => setCurrentTab(idx)}
+                className={`flex flex-col items-center gap-1 py-2.5 text-xs font-medium transition-colors ${
+                  activeIndex === idx ? "text-indigo-600" : "text-gray-500"
+                }`}
+              >
+                <span
+                  className={`rounded-full p-2 transition-colors ${
+                    activeIndex === idx ? "bg-indigo-50" : "bg-transparent"
+                  }`}
+                >
+                  {t.icon}
+                </span>
+                <span>{t.label}</span>
+              </RouterLink>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </nav>
   );
 };
 
