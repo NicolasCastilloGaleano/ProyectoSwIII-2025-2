@@ -1,4 +1,4 @@
-import { CreateMoodModal } from "@/apps/moods/components";
+﻿import { CreateMoodModal } from "@/apps/moods/components";
 import { moods } from "@/apps/moods/data/moods";
 import type {
   MoodAnalytics,
@@ -146,6 +146,7 @@ export default function HomePage() {
       <QuickActionsRow
         onPatients={() => navigate(PRIVATEROUTES.USERS_LIST)}
         onInsights={() => navigate(PRIVATEROUTES.ANALYTICS)}
+        onEvents={() => navigate(PRIVATEROUTES.EVENTS)}
         onCalendar={() =>
           calendarRef.current?.scrollIntoView({
             behavior: "smooth",
@@ -225,18 +226,18 @@ const HeroTodayCard = ({
           </p>
           <h1 className="mt-2 text-3xl leading-tight font-bold">
             {displayName
-              ? `${displayName}, ¿cómo te sientes hoy?`
-              : "¿Cómo te sientes hoy?"}
+              ? `${displayName}, Â¿cÃ³mo te sientes hoy?`
+              : "Â¿CÃ³mo te sientes hoy?"}
           </h1>
           <p className="mt-2 text-white/80">
-            Lleva un seguimiento visual y rápido de tus estados emocionales.
-            Cada registro alimenta el análisis inteligente y actualiza los
+            Lleva un seguimiento visual y rÃ¡pido de tus estados emocionales.
+            Cada registro alimenta el anÃ¡lisis inteligente y actualiza los
             tableros de tus profesionales.
           </p>
           <div className="mt-4 flex flex-wrap gap-4 text-sm">
             <HighlightPill
               icon={<CalendarMonth fontSize="small" />}
-              label="Días con registro"
+              label="DÃ­as con registro"
               value={analytics?.summary.daysTracked ?? 0}
               loading={loading}
             />
@@ -263,7 +264,7 @@ const HeroTodayCard = ({
             </Avatar>
             <div>
               <p className="text-sm tracking-widest text-white/60 uppercase">
-                Resumen del día
+                Resumen del dÃ­a
               </p>
               <p className="text-lg font-semibold text-white">
                 Selecciona hasta 3 emociones
@@ -278,7 +279,7 @@ const HeroTodayCard = ({
             Registrar emociones
           </button>
           <p className="text-xs text-white/70">
-            Tip: Puedes combinar hasta 3 emociones en un mismo día para capturar
+            Tip: Puedes combinar hasta 3 emociones en un mismo dÃ­a para capturar
             matices.
           </p>
         </div>
@@ -299,7 +300,7 @@ const HighlightPill = ({ icon, label, value, loading }: HighlightProps) => (
     {icon}
     <span className="text-white">
       <strong className="font-semibold">
-        {loading ? "—" : value.toString().padStart(2, "0")}
+        {loading ? "â€”" : value.toString().padStart(2, "0")}
       </strong>{" "}
       <span className="text-white/70">{label}</span>
     </span>
@@ -357,7 +358,7 @@ const AnalyticsSummaryCard = ({ analytics, loading }: SummaryProps) => {
             </div>
             <p className="mt-2 text-sm text-gray-500">{card.label}</p>
             <p className="text-2xl font-bold text-gray-900">
-              {loading ? "—" : card.value}
+              {loading ? "â€”" : card.value}
               <span className="text-base font-semibold text-gray-400">
                 {card.suffix ?? ""}
               </span>
@@ -372,12 +373,14 @@ const AnalyticsSummaryCard = ({ analytics, loading }: SummaryProps) => {
 interface QuickActionsProps {
   onPatients: () => void;
   onInsights: () => void;
+  onEvents: () => void;
   onCalendar: () => void;
 }
 
 const QuickActionsRow = ({
   onPatients,
   onInsights,
+  onEvents,
   onCalendar,
 }: QuickActionsProps) => {
   const actions = [
@@ -388,10 +391,16 @@ const QuickActionsRow = ({
       onClick: onPatients,
     },
     {
-      label: "Analítica",
-      description: "Profundiza en gráficos y tendencias.",
+      label: "AnalÃ­tica",
+      description: "Profundiza en grÃ¡ficos y tendencias.",
       icon: <Insights fontSize="large" />,
       onClick: onInsights,
+    },
+    {
+      label: "Eventos",
+      description: "Foros, discusiones y reuniones.",
+      icon: <EmojiEvents fontSize="large" />,
+      onClick: onEvents,
     },
     {
       label: "Calendario",
@@ -652,7 +661,7 @@ const MoodTimelineBoard = ({
       <div>
         <p className="text-sm font-semibold text-gray-500">Latido emocional</p>
         <h2 className="text-xl font-bold text-gray-900">
-          Últimos registros destacados
+          Ãšltimos registros destacados
         </h2>
       </div>
     </div>
@@ -720,9 +729,9 @@ interface HeatmapProps {
 
 const MoodHeatmapBoard = ({ data, loading }: HeatmapProps) => (
   <div className="shadow-soft rounded-3xl border border-gray-100 bg-white p-5">
-    <p className="text-sm font-semibold text-gray-500">Mapa de energía</p>
+    <p className="text-sm font-semibold text-gray-500">Mapa de energÃ­a</p>
     <h2 className="text-xl font-bold text-gray-900">
-      Tendencia de los últimos días
+      Tendencia de los Ãºltimos dÃ­as
     </h2>
     <div className="mt-6 grid grid-cols-6 gap-2">
       {loading
@@ -762,7 +771,7 @@ const TopMoodsBoard = ({ analytics, loading }: TopProps) => (
   <div className="shadow-soft rounded-3xl border border-gray-100 bg-white p-5">
     <p className="text-sm font-semibold text-gray-500">Top emociones</p>
     <h2 className="text-xl font-bold text-gray-900">
-      Frecuencias más repetidas
+      Frecuencias mÃ¡s repetidas
     </h2>
     <div className="mt-4 space-y-4">
       {loading
@@ -792,7 +801,7 @@ const TopMoodsBoard = ({ analytics, loading }: TopProps) => (
           ))}
       {!loading && (analytics?.topMoods?.length ?? 0) === 0 && (
         <p className="rounded-2xl bg-gray-50 p-4 text-sm text-gray-500">
-          Aún no hay suficientes datos para calcular los favoritos.
+          AÃºn no hay suficientes datos para calcular los favoritos.
         </p>
       )}
     </div>

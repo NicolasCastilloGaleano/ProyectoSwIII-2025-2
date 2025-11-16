@@ -10,6 +10,11 @@ export function SideBar() {
                 Principal
             </Link>
 
+            <Link to="/events" className={linkClass}>
+                <img width={20} height={20} src="src\\assets\\share-svgrepo-com.svg" alt="Eventos" />
+                Eventos
+            </Link>
+
             <Link to="/Ejercicios" className={linkClass}>
                 <img width={20} height={20} src="src\assets\share-svgrepo-com.svg" alt="Shared" />
                 Ejercicios
