@@ -226,18 +226,18 @@ const HeroTodayCard = ({
           </p>
           <h1 className="mt-2 text-3xl leading-tight font-bold">
             {displayName
-              ? `${displayName}, Â¿cÃ³mo te sientes hoy?`
-              : "Â¿CÃ³mo te sientes hoy?"}
+              ? `${displayName}, ¿cómo te sientes hoy?`
+              : "¿Cómo te sientes hoy?"}
           </h1>
           <p className="mt-2 text-white/80">
-            Lleva un seguimiento visual y rÃ¡pido de tus estados emocionales.
-            Cada registro alimenta el anÃ¡lisis inteligente y actualiza los
+            Lleva un seguimiento visual y rápido de tus estados emocionales.
+            Cada registro alimenta el análisis inteligente y actualiza los
             tableros de tus profesionales.
           </p>
           <div className="mt-4 flex flex-wrap gap-4 text-sm">
             <HighlightPill
               icon={<CalendarMonth fontSize="small" />}
-              label="DÃ­as con registro"
+              label="Días con registro"
               value={analytics?.summary.daysTracked ?? 0}
               loading={loading}
             />
@@ -264,7 +264,7 @@ const HeroTodayCard = ({
             </Avatar>
             <div>
               <p className="text-sm tracking-widest text-white/60 uppercase">
-                Resumen del dÃ­a
+                Resumen del día
               </p>
               <p className="text-lg font-semibold text-white">
                 Selecciona hasta 3 emociones
@@ -279,7 +279,7 @@ const HeroTodayCard = ({
             Registrar emociones
           </button>
           <p className="text-xs text-white/70">
-            Tip: Puedes combinar hasta 3 emociones en un mismo dÃ­a para capturar
+            Tip: Puedes combinar hasta 3 emociones en un mismo día para capturar
             matices.
           </p>
         </div>
@@ -300,7 +300,7 @@ const HighlightPill = ({ icon, label, value, loading }: HighlightProps) => (
     {icon}
     <span className="text-white">
       <strong className="font-semibold">
-        {loading ? "â€”" : value.toString().padStart(2, "0")}
+        {loading ? "—" : value.toString().padStart(2, "0")}
       </strong>{" "}
       <span className="text-white/70">{label}</span>
     </span>
@@ -358,7 +358,7 @@ const AnalyticsSummaryCard = ({ analytics, loading }: SummaryProps) => {
             </div>
             <p className="mt-2 text-sm text-gray-500">{card.label}</p>
             <p className="text-2xl font-bold text-gray-900">
-              {loading ? "â€”" : card.value}
+              {loading ? "—" : card.value}
               <span className="text-base font-semibold text-gray-400">
                 {card.suffix ?? ""}
               </span>
@@ -391,8 +391,8 @@ const QuickActionsRow = ({
       onClick: onPatients,
     },
     {
-      label: "AnalÃ­tica",
-      description: "Profundiza en grÃ¡ficos y tendencias.",
+      label: "Analítica",
+      description: "Profundiza en gráficos y tendencias.",
       icon: <Insights fontSize="large" />,
       onClick: onInsights,
     },
@@ -661,7 +661,7 @@ const MoodTimelineBoard = ({
       <div>
         <p className="text-sm font-semibold text-gray-500">Latido emocional</p>
         <h2 className="text-xl font-bold text-gray-900">
-          Ãšltimos registros destacados
+          Últimos registros destacados
         </h2>
       </div>
     </div>
@@ -729,9 +729,9 @@ interface HeatmapProps {
 
 const MoodHeatmapBoard = ({ data, loading }: HeatmapProps) => (
   <div className="shadow-soft rounded-3xl border border-gray-100 bg-white p-5">
-    <p className="text-sm font-semibold text-gray-500">Mapa de energÃ­a</p>
+    <p className="text-sm font-semibold text-gray-500">Mapa de energía</p>
     <h2 className="text-xl font-bold text-gray-900">
-      Tendencia de los Ãºltimos dÃ­as
+      Tendencia de los últimos días
     </h2>
     <div className="mt-6 grid grid-cols-6 gap-2">
       {loading
@@ -771,7 +771,7 @@ const TopMoodsBoard = ({ analytics, loading }: TopProps) => (
   <div className="shadow-soft rounded-3xl border border-gray-100 bg-white p-5">
     <p className="text-sm font-semibold text-gray-500">Top emociones</p>
     <h2 className="text-xl font-bold text-gray-900">
-      Frecuencias mÃ¡s repetidas
+      Frecuencias más repetidas
     </h2>
     <div className="mt-4 space-y-4">
       {loading
@@ -801,7 +801,7 @@ const TopMoodsBoard = ({ analytics, loading }: TopProps) => (
           ))}
       {!loading && (analytics?.topMoods?.length ?? 0) === 0 && (
         <p className="rounded-2xl bg-gray-50 p-4 text-sm text-gray-500">
-          AÃºn no hay suficientes datos para calcular los favoritos.
+          Aún no hay suficientes datos para calcular los favoritos.
         </p>
       )}
     </div>
