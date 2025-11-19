@@ -129,6 +129,7 @@ export default function HomePage() {
   return (
     <div className="space-y-8 px-2 py-6 md:px-8">
       <section className="grid gap-6 lg:grid-cols-3">
+
         <HeroTodayCard
           onCreateMood={() => setIsModalOpen(true)}
           analytics={analytics}
@@ -141,6 +142,7 @@ export default function HomePage() {
           analytics={analytics}
           loading={analyticsLoading}
         />
+
       </section>
 
       <QuickActionsRow
@@ -537,9 +539,8 @@ const MonthlyMoodCalendar = ({
                 className={`flex h-24 flex-col rounded-2xl border p-2 transition ${cellClass}`}
               >
                 <div
-                  className={`flex items-center justify-between text-sm font-semibold ${
-                    isToday ? "text-indigo-600" : "text-gray-600"
-                  }`}
+                  className={`flex items-center justify-between text-sm font-semibold ${isToday ? "text-indigo-600" : "text-gray-600"
+                    }`}
                 >
                   <span>{cell.day}</span>
                   {isToday && (
@@ -555,9 +556,8 @@ const MonthlyMoodCalendar = ({
                     return Icon ? (
                       <Icon
                         key={`${cell.day}-${mood.moodId}`}
-                        className={`h-5 w-5 ${
-                          metadata?.textColor ?? "text-gray-500"
-                        }`}
+                        className={`h-5 w-5 ${metadata?.textColor ?? "text-gray-500"
+                          }`}
                       />
                     ) : (
                       <span
@@ -659,56 +659,55 @@ const MoodTimelineBoard = ({
     <div className="mt-4 grid gap-4 md:grid-cols-2">
       {loading
         ? Array.from({ length: 4 }).map((_, idx) => (
-            <div
-              key={`timeline-skeleton-${idx}`}
-              className="h-32 animate-pulse rounded-2xl border border-gray-100 bg-gray-50"
-            />
-          ))
+          <div
+            key={`timeline-skeleton-${idx}`}
+            className="h-32 animate-pulse rounded-2xl border border-gray-100 bg-gray-50"
+          />
+        ))
         : timeline.map((entry) => (
-            <article
-              key={entry.date}
-              className="rounded-2xl border border-gray-100 bg-gray-50 p-4 hover:border-indigo-200"
-            >
-              <p className="text-sm font-semibold text-gray-500">
-                {formatDateLabel(entry.date)}
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {entry.moods.map((mood) => {
-                  const moodMeta = moodDictionary.get(mood.moodId);
-                  const Icon = moodMeta?.Icon;
-                  return (
-                    <span
-                      key={`${entry.date}-${mood.moodId}`}
-                      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${toneStyles[mood.tone]}`}
-                    >
-                      {Icon && (
-                        <Icon
-                          className={`${
-                            moodMeta?.textColor ?? "text-gray-700"
+          <article
+            key={entry.date}
+            className="rounded-2xl border border-gray-100 bg-gray-50 p-4 hover:border-indigo-200"
+          >
+            <p className="text-sm font-semibold text-gray-500">
+              {formatDateLabel(entry.date)}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {entry.moods.map((mood) => {
+                const moodMeta = moodDictionary.get(mood.moodId);
+                const Icon = moodMeta?.Icon;
+                return (
+                  <span
+                    key={`${entry.date}-${mood.moodId}`}
+                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${toneStyles[mood.tone]}`}
+                  >
+                    {Icon && (
+                      <Icon
+                        className={`${moodMeta?.textColor ?? "text-gray-700"
                           } h-4 w-4`}
-                        />
-                      )}
-                      {moodMeta?.label ?? mood.moodId}
-                    </span>
-                  );
-                })}
-              </div>
-              <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
-                <span>Intensidad promedio</span>
-                <span className="font-semibold text-gray-800">
-                  {entry.dayScore.toFixed(2)}
-                </span>
-              </div>
-              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
-                <div
-                  className={`h-full ${scoreColor(entry.dayScore)}`}
-                  style={{
-                    width: `${Math.min(Math.abs(entry.dayScore) * 100, 100)}%`,
-                  }}
-                />
-              </div>
-            </article>
-          ))}
+                      />
+                    )}
+                    {moodMeta?.label ?? mood.moodId}
+                  </span>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
+              <span>Intensidad promedio</span>
+              <span className="font-semibold text-gray-800">
+                {entry.dayScore.toFixed(2)}
+              </span>
+            </div>
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+              <div
+                className={`h-full ${scoreColor(entry.dayScore)}`}
+                style={{
+                  width: `${Math.min(Math.abs(entry.dayScore) * 100, 100)}%`,
+                }}
+              />
+            </div>
+          </article>
+        ))}
     </div>
   </div>
 );
@@ -727,28 +726,28 @@ const MoodHeatmapBoard = ({ data, loading }: HeatmapProps) => (
     <div className="mt-6 grid grid-cols-6 gap-2">
       {loading
         ? Array.from({ length: 18 }).map((_, idx) => (
-            <div
-              key={`heatmap-skeleton-${idx}`}
-              className="h-10 animate-pulse rounded-xl bg-gray-100"
-            />
-          ))
+          <div
+            key={`heatmap-skeleton-${idx}`}
+            className="h-10 animate-pulse rounded-xl bg-gray-100"
+          />
+        ))
         : data.map((entry) => {
-            const bg = scoreColor(entry.dayScore);
-            const textColor =
-              entry.dayScore >= 0.1
-                ? "text-emerald-900"
-                : entry.dayScore <= -0.1
-                  ? "text-rose-900"
-                  : "text-gray-700";
-            return (
-              <div
-                key={`heat-${entry.date}`}
-                className={`flex h-12 flex-col items-center justify-center rounded-xl text-xs font-semibold ${bg} ${textColor}`}
-              >
-                <span>{new Date(entry.date).getDate()}</span>
-              </div>
-            );
-          })}
+          const bg = scoreColor(entry.dayScore);
+          const textColor =
+            entry.dayScore >= 0.1
+              ? "text-emerald-900"
+              : entry.dayScore <= -0.1
+                ? "text-rose-900"
+                : "text-gray-700";
+          return (
+            <div
+              key={`heat-${entry.date}`}
+              className={`flex h-12 flex-col items-center justify-center rounded-xl text-xs font-semibold ${bg} ${textColor}`}
+            >
+              <span>{new Date(entry.date).getDate()}</span>
+            </div>
+          );
+        })}
     </div>
   </div>
 );
@@ -767,29 +766,29 @@ const TopMoodsBoard = ({ analytics, loading }: TopProps) => (
     <div className="mt-4 space-y-4">
       {loading
         ? Array.from({ length: 3 }).map((_, idx) => (
-            <div
-              key={`top-skeleton-${idx}`}
-              className="h-16 animate-pulse rounded-2xl bg-gray-100"
-            />
-          ))
+          <div
+            key={`top-skeleton-${idx}`}
+            className="h-16 animate-pulse rounded-2xl bg-gray-100"
+          />
+        ))
         : (analytics?.topMoods ?? []).slice(0, 4).map((mood) => (
-            <div
-              key={mood.moodId}
-              className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3"
-            >
-              <div>
-                <p className="font-semibold text-gray-800">{mood.label}</p>
-                <p className="text-sm text-gray-500">
-                  {mood.count} apariciones
-                </p>
-              </div>
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${toneStyles[mood.tone]}`}
-              >
-                {mood.percentage}% del total
-              </span>
+          <div
+            key={mood.moodId}
+            className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3"
+          >
+            <div>
+              <p className="font-semibold text-gray-800">{mood.label}</p>
+              <p className="text-sm text-gray-500">
+                {mood.count} apariciones
+              </p>
             </div>
-          ))}
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${toneStyles[mood.tone]}`}
+            >
+              {mood.percentage}% del total
+            </span>
+          </div>
+        ))}
       {!loading && (analytics?.topMoods?.length ?? 0) === 0 && (
         <p className="rounded-2xl bg-gray-50 p-4 text-sm text-gray-500">
           Aún no hay suficientes datos para calcular los favoritos.

@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PRIVATEROUTES } from "@/routes/private.routes";
 import { useAutomaticDiagnosis } from "../hooks/useAutomaticDiagnosis";
+import { FloatingCounselor } from "../components/floatingCounselor";
 
 const clampScore = (value: number) => Math.max(-1, Math.min(1, value));
 
@@ -77,6 +78,7 @@ const InsightsPage = () => {
 
   return (
     <Container label="Panel analítico">
+      <FloatingCounselor />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-gray-500">
