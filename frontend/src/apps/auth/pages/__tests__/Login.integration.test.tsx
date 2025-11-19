@@ -147,7 +147,7 @@ describe("Integración - Login", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/correo requerido/i)).toBeInTheDocument();
-      expect(screen.getByText(/contrasena requerida/i)).toBeInTheDocument();
+      expect(screen.getByText(/contraseña requerida/i)).toBeInTheDocument();
     });
 
     expect(loginMock).not.toHaveBeenCalled();
@@ -172,7 +172,7 @@ describe("Integración - Login", () => {
     const user = userEvent.setup();
 
     await user.click(
-      screen.getByRole("button", { name: /\?olvidaste tu contrasena\?/i }),
+      screen.getByRole("button", { name: /\¿olvidaste tu contraseña\?/i }),
     );
 
     const dialog = await screen.findByRole("dialog");
