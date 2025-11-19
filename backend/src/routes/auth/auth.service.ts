@@ -35,7 +35,6 @@ export const createUser = async (payload: CreateUserDto): Promise<UserData> => {
   const uid = userRecord.uid;
   const userDoc = {
     name: normalizedName,
-    nombre: normalizedName,
     email: normalizedEmail,
     correo: normalizedEmail,
     role: targetRole,
@@ -82,7 +81,7 @@ export const getUserFromToken = async (uid: string): Promise<UserData> => {
     id: userDoc.id,
     uid: userDoc.id,
     correo: userData.correo || userData.email || "",
-    nombre: userData.nombre || userData.name || "",
+    name: userData.name || userData.name || "",
     roles: Array.isArray(userData.roles) ? userData.roles : [],
     tipo: userData.tipo,
     celular: userData.celular,

@@ -15,8 +15,7 @@ export interface UserData {
   uid: string;
   correo: string;
   email?: string;
-  nombre: string;
-  name?: string;
+  name: string;
   role?: string;
   roles: string[];
   status?: string;
