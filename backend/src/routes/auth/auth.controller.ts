@@ -1,6 +1,16 @@
 import { Request, Response } from "express";
+import { z } from "zod";
+import { createUserSchema } from "../users/users.validators";
 import { ApiResponse, CreateUserDto, UserData } from "./auth.interface";
 import { createUser, getUserFromToken } from "./auth.service";
+
+const registerUserSchema = createUserSchema
+  .omit({ photoURL: true })
+  .extend({
+    password: z
+      .string()
+      .min(6, "La contraseña debe tener al menos 6 caracteres."),
+  });
 
 export const getLoggedInUserController = async (
   req: Request,
@@ -41,19 +51,32 @@ export const getLoggedInUserController = async (
 
 export const registerUserController = async (
   req: Request,
-  res: Response<ApiResponse<UserData>>
+  res: Response<ApiResponse<UserData>>,
 ): Promise<Response<ApiResponse<UserData>>> => {
   try {
-    const payload = req.body as CreateUserDto;
+    const parsed = registerUserSchema.safeParse(req.body);
 
-    if (!payload?.email || !payload?.password) {
+    if (!parsed.success) {
+      const [firstIssue] = parsed.error.issues;
       return res.status(400).json({
         success: false,
-        error: "email y password son requeridos",
+        error: firstIssue?.message ?? "Datos de registro inválidos",
       });
     }
 
-    const createdUser = await createUser(payload);
+    const payload = parsed.data;
+
+    const sanitized: CreateUserDto = {
+      email: payload.email.trim().toLowerCase(),
+      password: payload.password.trim(),
+      name: payload.name.trim(),
+      phone: payload.phone ? payload.phone.trim() : null,
+      role: payload.role,
+      status: payload.status,
+      accentColor: payload.accentColor ?? null,
+    };
+
+    const createdUser = await createUser(sanitized);
 
     return res.status(201).json({
       success: true,
@@ -63,7 +86,6 @@ export const registerUserController = async (
   } catch (err: any) {
     console.error("Error en registerUserController:", err);
 
-    // Manejo básico de errores de Firebase Auth
     const message =
       err?.code === "auth/email-already-exists"
         ? "El correo ya está registrado"

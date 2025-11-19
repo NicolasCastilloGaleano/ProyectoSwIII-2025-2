@@ -1,6 +1,13 @@
+import { UserRole, UserStatus } from "../users/users.interface";
+
 export interface CreateUserDto {
   email: string;
   password: string;
+  name: string;
+  phone?: string | null;
+  role?: UserRole;
+  status?: UserStatus;
+  accentColor?: string | null;
 }
 
 export interface UserData {
@@ -10,9 +17,12 @@ export interface UserData {
   email?: string;
   nombre: string;
   name?: string;
+  role?: string;
   roles: string[];
+  status?: string;
   tipo?: string;
   celular?: string;
+  phone?: string;
   ciudad?: string;
   departamento?: string;
   pais?: string;
@@ -20,6 +30,8 @@ export interface UserData {
   documento?: string;
   documentoTipo?: string;
   fechaDeCreacion?: string;
+  createdAt?: number;
+  updatedAt?: number;
   creadoPor?: string;
   creadoPorNombre?: string;
   responsable?: string;

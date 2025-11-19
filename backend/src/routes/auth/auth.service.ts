@@ -1,44 +1,70 @@
 import { COLLECTIONS } from "@data/constants";
 import { formatDate } from "@utils/date";
-import * as admin from "firebase-admin";
 import { auth, db } from "../../config/firebase";
+import { buildSearchMetadata } from "../users/users.service";
+import { UserRole, UserStatus } from "../users/users.interface";
 import { CreateUserDto, UserData } from "./auth.interface";
 
 /**
  * Crea un usuario en Firebase Auth (email/password) y guarda su documento en Firestore.
  */
 export const createUser = async (payload: CreateUserDto): Promise<UserData> => {
+  const normalizedEmail = payload.email.trim().toLowerCase();
+  const normalizedPassword = payload.password.trim();
+  const normalizedName = payload.name.trim();
+  const normalizedPhoneDigits = (payload.phone ?? "")
+    .replace(/[^\d+]/g, "")
+    .trim();
+  const normalizedPhone =
+    normalizedPhoneDigits.length > 0 ? normalizedPhoneDigits : null;
+  const targetRole = payload.role ?? UserRole.USER;
+  const targetStatus = payload.status ?? UserStatus.ACTIVE;
+  const normalizedAccent = (() => {
+    const raw = payload.accentColor?.trim();
+    if (!raw) return null;
+    return raw.toUpperCase();
+  })();
+  const searchMeta = buildSearchMetadata(normalizedName);
+  const timestamps = Date.now();
+
+  const userRecord = await auth.createUser({
+    email: normalizedEmail,
+    password: normalizedPassword,
+  });
+
+  const uid = userRecord.uid;
+  const userDoc = {
+    name: normalizedName,
+    nombre: normalizedName,
+    email: normalizedEmail,
+    correo: normalizedEmail,
+    role: targetRole,
+    roles: [targetRole],
+    status: targetStatus,
+    phone: normalizedPhone ?? null,
+    celular: normalizedPhone ?? undefined,
+    accentColor: normalizedAccent,
+    photoURL: null,
+    createdAt: timestamps,
+    updatedAt: timestamps,
+    fechaDeCreacion: new Date(timestamps).toISOString(),
+    ...searchMeta,
+  };
+
   try {
-    const { email, password } = payload;
-
-    // Crear usuario en Firebase Authentication
-    const userRecord = await auth.createUser({
-      email,
-      password,
-    });
-
-    const uid = userRecord.uid;
-
-    // Documento para Firestore
-    const userDoc = {
-      email,
-      fechaDeCreacion: admin.firestore.FieldValue.serverTimestamp(),
-    };
-
-    // Guardar el documento en Firestore
     await db.collection(COLLECTIONS.USERS).doc(uid).set(userDoc);
-
-    // Normalizar y devolver el usuario creado
-    return {
-      id: uid,
-      uid,
-      correo: email,
-      fechaDeCreacion: new Date().toISOString(), // O usar un formato específico
-    } as UserData;
-  } catch (err: any) {
-    // Re-lanzar para que el controlador maneje el error adecuadamente
-    throw err;
+  } catch (error) {
+    await auth.deleteUser(uid).catch((deleteErr) =>
+      console.error("No se pudo revertir la creación de Auth:", deleteErr),
+    );
+    throw error;
   }
+
+  return {
+    ...userDoc,
+    id: uid,
+    uid,
+  } as UserData;
 };
 
 export const getUserFromToken = async (uid: string): Promise<UserData> => {
