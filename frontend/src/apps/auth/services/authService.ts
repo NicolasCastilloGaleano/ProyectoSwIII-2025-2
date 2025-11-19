@@ -103,13 +103,38 @@ export const getUserByToken = async (): Promise<SafeResponse<User>> => {
   }
 };
 
+export interface RegisterAuthUserPayload {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string | null;
+  role?: UserRole;
+  status?: UserStatus;
+  accentColor?: string | null;
+}
+
 export const registerAuthUser = async (
-  payload: { email: string; password: string },
+  payload: RegisterAuthUserPayload,
 ): Promise<SafeResponse<{ id: string }>> => {
   try {
+    const normalizedPhone = (() => {
+      const digits = (payload.phone ?? "").replace(/[^\d+]/g, "").trim();
+      return digits.length > 0 ? digits : null;
+    })();
+
+    const requestBody = {
+      email: payload.email.trim().toLowerCase(),
+      password: payload.password.trim(),
+      name: payload.name.trim(),
+      phone: normalizedPhone,
+      role: payload.role ?? UserRole.USER,
+      status: payload.status ?? UserStatus.ACTIVE,
+      accentColor: payload.accentColor?.trim() || undefined,
+    };
+
     const res = await axiosAPI.post<APIResponse<RemoteUserPayload>>(
       `${AUTH_ENDPOINT}/register`,
-      payload,
+      requestBody,
     );
     const id = res.data.data?.id ?? res.data.data?.uid;
     if (!id) throw new Error("Respuesta sin identificador");

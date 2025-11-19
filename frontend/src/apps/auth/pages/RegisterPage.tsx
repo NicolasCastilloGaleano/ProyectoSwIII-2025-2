@@ -1,31 +1,58 @@
 import { registerAuthUser } from "@/apps/auth/services/authService";
+import { UserRole, UserStatus } from "@/apps/users/services/users.interfaces";
 import Button from "@/components/forms/Button";
 import RenderInputs from "@/components/forms/RenderInputs";
 import { PUBLICROUTES } from "@/routes/public.routes";
 import useStore from "@/store/useStore";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type SubmitHandler, type Resolver } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import * as yup from "yup";
 
-const registerSchema = yup.object({
-  email: yup.string().email("Correo inválido").required("Correo requerido"),
-  password: yup
-    .string()
-    .min(6, "Mínimo 6 caracteres")
-    .required("Contraseña requerida"),
-  confirmPassword: yup
-    .string()
-    .oneOf([yup.ref("password")], "Las contraseñas no coinciden")
-    .required("Confirmación requerida"),
-});
-
 type RegisterInputs = {
+  name: string;
   email: string;
+  phone?: string | null;
   password: string;
   confirmPassword: string;
 };
+
+const phoneValidation = yup
+  .string()
+  .nullable()
+  .transform((value) => value?.trim() ?? "")
+  .test(
+    "phone-format",
+    "El telefono debe contener entre 5 y 30 digitos",
+    (value) => {
+      if (!value) return true;
+      return /^\d{5,30}$/.test(value);
+    },
+  );
+
+const registerSchema: yup.ObjectSchema<RegisterInputs> = yup
+  .object({
+    name: yup
+      .string()
+      .trim()
+      .min(3, "Nombre muy corto")
+      .required("Nombre requerido"),
+    email: yup
+      .string()
+      .email("Correo invalido")
+      .required("Correo requerido"),
+    phone: phoneValidation.optional(),
+    password: yup
+      .string()
+      .min(6, "Minimo 6 caracteres")
+      .required("Contraseña requerida"),
+    confirmPassword: yup
+      .string()
+      .oneOf([yup.ref("password")], "Las contraseñas no coinciden")
+      .required("Confirmacion requerida"),
+  })
+  .required();
 
 const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
@@ -41,17 +68,39 @@ const RegisterPage = () => {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegisterInputs>({ resolver: yupResolver(registerSchema) });
+  } = useForm<RegisterInputs>({
+    resolver: yupResolver(registerSchema) as Resolver<RegisterInputs>,
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
 
-  const onSubmit = async ({ email, password }: RegisterInputs) => {
+  const onSubmit: SubmitHandler<RegisterInputs> = async (data) => {
+    const { name, email, password, phone } = data;
     setLoading(true);
     try {
-      const res = await registerAuthUser({ email, password });
+      const res = await registerAuthUser({
+        name: name.trim(),
+        email,
+        password,
+        phone: phone?.trim() ?? "",
+        role: UserRole.USER,
+        status: UserStatus.ACTIVE,
+      });
+
       if (!res.success) {
         showSnackbar(res.error ?? "Error al registrar", "error");
         return;
       }
-      showSnackbar("Cuenta creada. Ahora inicia sesión.", "success");
+
+      showSnackbar(
+        "Cuenta creada exitosamente. Por favor inicia sesión.",
+        "success",
+      );
       navigate(PUBLICROUTES.LOGIN);
     } catch (e) {
       showSnackbar("No fue posible crear la cuenta", "error");
@@ -59,6 +108,10 @@ const RegisterPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const onInvalid = () => {
+    showSnackbar("Por favor corrige los campos marcados", "error");
   };
 
   return (
@@ -69,12 +122,14 @@ const RegisterPage = () => {
       }}
     >
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(onSubmit, onInvalid)}
         className="shadow-soft mx-auto w-full max-w-md rounded-3xl border border-gray-100 bg-white p-6 sm:p-8"
       >
         <header>
           <p className="text-sm font-semibold text-gray-500">Crea tu cuenta</p>
-          <h1 className="mt-1 text-xl font-bold text-gray-900">Registrarse</h1>
+          <h1 className="mt-1 text-xl font-bold text-gray-900">
+            Registrarse
+          </h1>
         </header>
 
         <div className="mt-6 flex flex-col gap-4">
@@ -82,12 +137,30 @@ const RegisterPage = () => {
             control={control}
             errors={errors}
             fieldConfig={{
-              name: "email",
-              label: "Correo electrónico",
+              name: "name",
+              label: "Nombre completo",
               type: "text",
             }}
           />
-
+          <RenderInputs
+            control={control}
+            errors={errors}
+            fieldConfig={{
+              name: "email",
+              label: "Correo electronico",
+              type: "text",
+            }}
+          />
+          <RenderInputs
+            control={control}
+            errors={errors}
+            fieldConfig={{
+              name: "phone",
+              label: "Telefono de contacto",
+              type: "phone",
+              maxLength: 15,
+            }}
+          />
           <RenderInputs
             control={control}
             errors={errors}
@@ -97,7 +170,6 @@ const RegisterPage = () => {
               type: "password",
             }}
           />
-
           <RenderInputs
             control={control}
             errors={errors}

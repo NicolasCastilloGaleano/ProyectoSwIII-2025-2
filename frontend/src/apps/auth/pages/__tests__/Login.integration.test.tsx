@@ -1,10 +1,10 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import Login from "../Login";
 import { PRIVATEROUTES } from "@/routes/private.routes";
-import { login } from "@/apps/auth/services/auth";
+import { login, resetPassword } from "@/apps/auth/services/auth";
 
 /**
  * @fileoverview Pruebas de integración para el componente de Login
@@ -41,6 +41,7 @@ import { login } from "@/apps/auth/services/auth";
 const navigateMock = vi.fn();
 const showSnackbarMock = vi.fn();
 const loginMock = login as Mock;
+const resetPasswordMock = resetPassword as Mock;
 
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual<typeof import("react-router-dom")>(
@@ -69,12 +70,14 @@ vi.mock("@/store/useStore", () => ({
 
 vi.mock("@/apps/auth/services/auth", () => ({
   login: vi.fn(),
+  resetPassword: vi.fn(),
 }));
 
 describe("Integración - Login", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     loginMock.mockReset();
+    resetPasswordMock.mockReset();
   });
 
   const renderComponent = () =>
@@ -158,7 +161,33 @@ describe("Integración - Login", () => {
     await user.type(screen.getByLabelText(/contrase/i, { selector: "input" }), "unaClave123");
     await user.click(screen.getByRole("button", { name: /ingresar/i }));
 
-    expect(await screen.findByText(/correo inválido/i)).toBeInTheDocument();
+    expect(await screen.findByText(/correo invalido/i)).toBeInTheDocument();
     expect(loginMock).not.toHaveBeenCalled();
+  });
+
+  it("permite solicitar la recuperación de contraseña desde el diálogo", async () => {
+    resetPasswordMock.mockResolvedValue(undefined);
+
+    renderComponent();
+    const user = userEvent.setup();
+
+    await user.click(
+      screen.getByRole("button", { name: /\¿olvidaste tu contraseña\?/i }),
+    );
+
+    const dialog = await screen.findByRole("dialog");
+    const emailInput = within(dialog).getByRole("textbox", {
+      name: /correo/i,
+    });
+
+    await user.clear(emailInput);
+    await user.type(emailInput, "user@example.com");
+    await user.click(
+      within(dialog).getByRole("button", { name: /enviar instrucciones/i }),
+    );
+
+    await waitFor(() => {
+      expect(resetPasswordMock).toHaveBeenCalledWith("user@example.com");
+    });
   });
 });

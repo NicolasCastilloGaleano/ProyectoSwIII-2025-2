@@ -25,6 +25,23 @@ const mapFirebaseAuthError = (error: FirebaseError | Error) => {
   return error.message || "No fue posible iniciar sesión.";
 };
 
+const mapFirebaseResetPasswordError = (error: FirebaseError | Error) => {
+  if ("code" in error) {
+    switch (error.code) {
+      case "auth/missing-email":
+      case "auth/invalid-email":
+        return "Ingresa un correo válido para continuar.";
+      case "auth/user-not-found":
+        return "No existe una cuenta asociada a ese correo.";
+      case "auth/too-many-requests":
+        return "Superaste el número de intentos permitidos. Intenta más tarde.";
+      default:
+        return error.message || "No fue posible enviar el correo de recuperación.";
+    }
+  }
+  return error.message || "No fue posible enviar el correo de recuperación.";
+};
+
 // Login: retorna token y actualiza Zustand con token y usuario
 export const login = async (
   email: string,
@@ -67,10 +84,12 @@ export const login = async (
 // Enviar email para restablecer contraseña
 export const resetPassword = async (email: string): Promise<void> => {
   try {
-    await sendPasswordResetEmail(auth, email);
+    const normalizedEmail = email.trim().toLowerCase();
+    await sendPasswordResetEmail(auth, normalizedEmail);
   } catch (error: unknown) {
     console.error("resetPassword error:", error);
-    throw error;
+    const firebaseError = error as FirebaseError | Error;
+    throw new Error(mapFirebaseResetPasswordError(firebaseError));
   }
 };
 
