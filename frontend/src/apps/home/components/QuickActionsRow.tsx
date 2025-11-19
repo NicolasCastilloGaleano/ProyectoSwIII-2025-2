@@ -1,4 +1,5 @@
 import CalendarToday from "@mui/icons-material/CalendarToday";
+import EmojiEvents from "@mui/icons-material/EmojiEvents";
 import Group from "@mui/icons-material/Group";
 import Insights from "@mui/icons-material/Insights";
 
@@ -6,12 +7,14 @@ interface QuickActionsProps {
   onPatients: () => void;
   onInsights: () => void;
   onCalendar: () => void;
+  onEvents: () => void;
 }
 
 const QuickActionsRow = ({
   onPatients,
   onInsights,
   onCalendar,
+  onEvents,
 }: QuickActionsProps) => {
   const actions = [
     {
@@ -25,6 +28,12 @@ const QuickActionsRow = ({
       description: "Profundiza en gráficos y tendencias.",
       icon: <Insights fontSize="large" />,
       onClick: onInsights,
+    },
+    {
+      label: "Eventos",
+      description: "Foros, discusiones y reuniones.",
+      icon: <EmojiEvents fontSize="large" />,
+      onClick: onEvents,
     },
     {
       label: "Calendario",

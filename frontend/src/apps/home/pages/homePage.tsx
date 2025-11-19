@@ -1,4 +1,4 @@
-import { CreateMoodModal } from "@/apps/moods/components";
+﻿import { CreateMoodModal } from "@/apps/moods/components";
 import { moods } from "@/apps/moods/data/moods";
 import type { MoodTimelineEntry } from "@/apps/moods/services/mood.interface";
 import { PRIVATEROUTES } from "@/routes/private.routes";
@@ -119,6 +119,7 @@ export default function HomePage() {
       <QuickActionsRow
         onPatients={() => navigate(PRIVATEROUTES.USERS_LIST)}
         onInsights={() => navigate(PRIVATEROUTES.ANALYTICS)}
+        onEvents={() => navigate(PRIVATEROUTES.EVENTS)}
         onCalendar={() =>
           calendarRef.current?.scrollIntoView({
             behavior: "smooth",
