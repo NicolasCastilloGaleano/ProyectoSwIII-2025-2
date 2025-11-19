@@ -74,7 +74,10 @@ export default function HomePage() {
     riskScore: 0,
   };
 
-  const availableMonths = analytics?.period.months ?? [focusMonth];
+  const availableMonths = useMemo(
+    () => analytics?.period?.months ?? [focusMonth],
+    [analytics?.period?.months, focusMonth],
+  );
   const [selectedMonth, setSelectedMonth] = useState(focusMonth);
 
   useEffect(() => {

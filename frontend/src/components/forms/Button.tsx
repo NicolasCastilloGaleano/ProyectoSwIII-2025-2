@@ -3,17 +3,17 @@ import { type ButtonProps, Button as MUIButton, styled } from "@mui/material";
 
 const ColorButton = styled(MUIButton)<ButtonProps>(() => ({
   color: "white",
-  backgroundColor: SOFTWARE_THEME.secondary,
+  backgroundColor: SOFTWARE_THEME.primary,
   "&:hover": {
-    backgroundColor: SOFTWARE_THEME.secondaryHover,
+    backgroundColor: SOFTWARE_THEME.primaryHover,
   },
 }));
 
 const SecondaryButton = styled(MUIButton)<ButtonProps>(({ theme }) => ({
-  color: theme.palette.getContrastText(SOFTWARE_THEME.primary),
-  backgroundColor: SOFTWARE_THEME.primary,
+  color: theme.palette.getContrastText(SOFTWARE_THEME.secondary),
+  backgroundColor: SOFTWARE_THEME.secondary,
   "&:hover": {
-    backgroundColor: SOFTWARE_THEME.primaryHover,
+    backgroundColor: SOFTWARE_THEME.secondaryHover,
   },
 }));
 

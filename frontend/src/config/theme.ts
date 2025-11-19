@@ -10,8 +10,9 @@ type StandardTheme = {
 
 // fallback if company not found
 const SOFTWARE_THEME: StandardTheme = {
-  primary: "#142D4C",
-  primaryHover: "#1F4574",
+  // primary: "#142D4C",
+  primary: "#4f39f6",
+  primaryHover: "#6257B5",
   secondary: "#385170",
   secondaryHover: "#496A92",
   background: "#ECECEC",

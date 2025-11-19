@@ -47,8 +47,8 @@ const PrivateLayout = () => {
       <div className={`min-h-screen w-full transition-all duration-300`}>
         <Header />
 
-        <div className={`flex min-h-[calc(100vh-120px)] w-full justify-center`}>
-          <section className="h-[calc(100vh-120px)] w-full overflow-auto">
+        <div className={`flex min-h-[calc(100vh-138px)] w-full justify-center`}>
+          <section className="h-[calc(100vh-138px)] w-full overflow-auto">
             <Outlet />
           </section>
         </div>
