@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { PRIVATEROUTES } from "@/routes/private.routes";
 import { useAutomaticDiagnosis } from "../hooks/useAutomaticDiagnosis";
 import { FloatingCounselor } from "../components/floatingCounselor";
+import MoodEvolutionChart from "../components/MoodEvolutionChart";
 
 const clampScore = (value: number) => Math.max(-1, Math.min(1, value));
 
@@ -279,34 +280,11 @@ const InsightsPage = () => {
           <p className="mt-2 max-w-lg text-gray-600">{generateDiagnosis.resumen}</p>
         </div>
 
-        <div className="mt-6 rounded-2xl bg-gradient-to-b from-gray-50 to-white p-4">
-          <h4 className="mb-2 text-sm font-semibold text-gray-500">
-            Evolución reciente
+        <div className="mt-8">
+          <h4 className="mb-4 text-sm font-semibold text-gray-500">
+            Evolución detallada (Últimos 12 días)
           </h4>
-          {sparklinePoints ? (
-            <svg viewBox="0 0 100 50" className="h-32 w-full">
-              <defs>
-                <linearGradient id="diagGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#a5b4fc" stopOpacity="0.7" />
-                  <stop offset="100%" stopColor="#c7d2fe" stopOpacity="0.1" />
-                </linearGradient>
-              </defs>
-              <polygon
-                fill="url(#diagGradient)"
-                points={`${sparklinePoints} 100,50 0,50`}
-              />
-              <polyline
-                fill="none"
-                stroke="#6366f1"
-                strokeWidth="2"
-                points={sparklinePoints}
-              />
-            </svg>
-          ) : (
-            <div className="flex h-32 items-center justify-center text-gray-400">
-              Sin datos suficientes para graficar.
-            </div>
-          )}
+          <MoodEvolutionChart data={timelineSlice} loading={analyticsLoading} />
         </div>
 
         <p className="mt-4 text-xs text-gray-400 text-center">
