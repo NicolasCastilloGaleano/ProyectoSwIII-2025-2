@@ -32,8 +32,10 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAutomaticDiagnosis } from "../hooks/useAutomaticDiagnosis";
+import { useRiskAlerts } from "../hooks/useRiskAlerts";
 import { FloatingCounselor } from "../components/floatingCounselor";
 import MoodEvolutionChart from "../components/MoodEvolutionChart";
+import RiskAlertsList from "../components/RiskAlertsList";
 
 const clampScore = (value: number) => Math.max(-1, Math.min(1, value));
 
@@ -55,16 +57,9 @@ const InsightsPage = () => {
 
   const [patients, setPatients] = useState<User[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
-  const [evolution, setEvolution] = useState<PatientEvolutionReport | null>(
-    null,
-  );
+  const [evolution, setEvolution] = useState<PatientEvolutionReport | null>(null);
   const [evolutionLoading, setEvolutionLoading] = useState(false);
-
-  const { generateDiagnosis } = useAutomaticDiagnosis();
-
-  const today = new Date();
-  const focusMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
-
+  const [focusMonth, setFocusMonth] = useState<string>(new Date().toISOString().slice(0, 7));
   useEffect(() => {
     if (!auth.currentUser?.id) return;
     void loadAnalytics({
@@ -210,6 +205,8 @@ const InsightsPage = () => {
   };
 
   const latestWeeklyReport = weeklyReports[0];
+  const { generateDiagnosis } = useAutomaticDiagnosis();
+  const { alerts } = useRiskAlerts();
 
   return (
     <Container label="Panel analítico">
@@ -332,6 +329,42 @@ const InsightsPage = () => {
       <section className="mt-6 rounded-3xl border border-gray-100 bg-white p-6 shadow-soft">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
+            <h2 className="text-xl font-bold text-gray-900">
+              Diagnóstico automático
+            </h2>
+            <p className="text-sm text-gray-500">
+              Análisis basado en tus emociones registradas
+            </p>
+          </div>
+        </header>
+
+        <div className="mt-6 flex flex-col items-center text-center">
+          <h3 className={`text-2xl font-semibold ${generateDiagnosis.color}`}>
+            {generateDiagnosis.estado}
+          </h3>
+          <p className="mt-2 max-w-lg text-gray-600">{generateDiagnosis.resumen}</p>
+        </div>
+
+        {/* Risk Alerts Section */}
+        <div className="mt-6">
+          <RiskAlertsList alerts={alerts} />
+        </div>
+
+        <div className="mt-8">
+          <h4 className="mb-4 text-sm font-semibold text-gray-500">
+            Evolución detallada (Últimos 12 días)
+          </h4>
+          <MoodEvolutionChart data={timelineSlice} loading={analyticsLoading} />
+        </div>
+
+        <p className="mt-4 text-center text-xs text-gray-400">
+          *Este diagnostico es orientativo y no sustituye una evaluacion profesional.*
+        </p>
+      </section>
+
+      <section className="mt-6 rounded-3xl border border-gray-100 bg-white p-6 shadow-soft">
+        <header className="flex flex-wrap items-center justify-between gap-3">
+          <div>
             <p className="text-sm font-semibold text-gray-500">
               Tendencias por jornada
             </p>
@@ -371,13 +404,12 @@ const InsightsPage = () => {
                     </td>
                     <td className="py-3 pr-4">
                       <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                          entry.dayScore >= 0.3
-                            ? "bg-emerald-50 text-emerald-700"
-                            : entry.dayScore <= -0.3
-                              ? "bg-rose-50 text-rose-700"
-                              : "bg-amber-50 text-amber-700"
-                        }`}
+                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${entry.dayScore >= 0.3
+                          ? "bg-emerald-50 text-emerald-700"
+                          : entry.dayScore <= -0.3
+                            ? "bg-rose-50 text-rose-700"
+                            : "bg-amber-50 text-amber-700"
+                          }`}
                       >
                         {entry.dayScore.toFixed(2)}
                       </span>
@@ -387,13 +419,12 @@ const InsightsPage = () => {
                         {entry.moods.map((mood) => (
                           <span
                             key={`${entry.date}-${mood.moodId}`}
-                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                              mood.tone === "positivo"
-                                ? "bg-emerald-50 text-emerald-700"
-                                : mood.tone === "negativo"
-                                  ? "bg-rose-50 text-rose-700"
-                                  : "bg-amber-50 text-amber-700"
-                            }`}
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${mood.tone === "positivo"
+                              ? "bg-emerald-50 text-emerald-700"
+                              : mood.tone === "negativo"
+                                ? "bg-rose-50 text-rose-700"
+                                : "bg-amber-50 text-amber-700"
+                              }`}
                           >
                             {mood.moodId}
                           </span>
@@ -433,39 +464,6 @@ const InsightsPage = () => {
           loading={evolutionLoading}
           onRefresh={() => loadEvolution(selectedPatientId)}
         />
-      </section>
-
-      <section className="mt-6 rounded-3xl border border-gray-100 bg-white p-6 shadow-soft">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">
-              Diagnóstico automático
-            </h2>
-            <p className="text-sm text-gray-500">
-              Análisis basado en tus emociones registradas
-            </p>
-          </div>
-        </header>
-
-        <div className="mt-6 flex flex-col items-center text-center">
-          <h3 className={`text-2xl font-semibold ${generateDiagnosis.color}`}>
-            {generateDiagnosis.estado}
-          </h3>
-          <p className="mt-2 max-w-lg text-gray-600">
-            {generateDiagnosis.resumen}
-          </p>
-        </div>
-
-        <div className="mt-8">
-          <h4 className="mb-4 text-sm font-semibold text-gray-500">
-            Evolución detallada (Últimos 12 días)
-          </h4>
-          <MoodEvolutionChart data={timelineSlice} loading={analyticsLoading} />
-        </div>
-
-        <p className="mt-4 text-center text-xs text-gray-400">
-          *Este diagnostico es orientativo y no sustituye una evaluacion profesional.*
-        </p>
       </section>
     </Container>
   );
