@@ -1,11 +1,36 @@
+import {
+  fetchPatientEvolution,
+  fetchPatientGrouping,
+  fetchWeeklyReports,
+  triggerWeeklyReport,
+  type PatientEvolutionReport,
+  type PatientGrouping,
+  type PatientSummary,
+  type WeeklyReport,
+} from "@/apps/reports/services/reports.service";
+import { listPatients } from "@/apps/users/services/users";
+import {
+  UserStatus,
+  type User,
+} from "@/apps/users/services/users.interfaces";
 import { Button, Container } from "@/components/forms";
+import { PRIVATEROUTES } from "@/routes/private.routes";
 import useStore from "@/store/useStore";
 import GroupsIcon from "@mui/icons-material/Groups";
+import InsightsIcon from "@mui/icons-material/Insights";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import SummarizeIcon from "@mui/icons-material/Summarize";
 import TimelineIcon from "@mui/icons-material/Timeline";
-import { useEffect, useMemo, useState } from "react";
+import TrendingDownIcon from "@mui/icons-material/TrendingDown";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useNavigate } from "react-router-dom";
-import { PRIVATEROUTES } from "@/routes/private.routes";
 import { useAutomaticDiagnosis } from "../hooks/useAutomaticDiagnosis";
 import { FloatingCounselor } from "../components/floatingCounselor";
 import MoodEvolutionChart from "../components/MoodEvolutionChart";
@@ -17,10 +42,25 @@ const InsightsPage = () => {
   const { analytics, analyticsLoading, loadAnalytics } = useStore(
     (state) => state.moodsState,
   );
+  const showSnackbar = useStore((state) => state.showSnackbar);
 
-  const { generateDiagnosis } = useAutomaticDiagnosis()
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const [weeklyReports, setWeeklyReports] = useState<WeeklyReport[]>([]);
+  const [weeklyLoading, setWeeklyLoading] = useState(false);
+
+  const [grouping, setGrouping] = useState<PatientGrouping | null>(null);
+  const [groupingLoading, setGroupingLoading] = useState(false);
+
+  const [patients, setPatients] = useState<User[]>([]);
+  const [selectedPatientId, setSelectedPatientId] = useState<string>("");
+  const [evolution, setEvolution] = useState<PatientEvolutionReport | null>(
+    null,
+  );
+  const [evolutionLoading, setEvolutionLoading] = useState(false);
+
+  const { generateDiagnosis } = useAutomaticDiagnosis();
 
   const today = new Date();
   const focusMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
@@ -33,6 +73,75 @@ const InsightsPage = () => {
       range: 6,
     });
   }, [auth.currentUser?.id, focusMonth, loadAnalytics]);
+
+  const loadWeekly = useCallback(async () => {
+    setWeeklyLoading(true);
+    const res = await fetchWeeklyReports(5);
+    if (res.success) {
+      setWeeklyReports(res.data);
+    } else {
+      showSnackbar(res.error, "error");
+    }
+    setWeeklyLoading(false);
+  }, [showSnackbar]);
+
+  const loadGrouping = useCallback(async () => {
+    setGroupingLoading(true);
+    const res = await fetchPatientGrouping({ months: 3 });
+    if (res.success) {
+      setGrouping(res.data);
+    } else {
+      showSnackbar(res.error, "error");
+    }
+    setGroupingLoading(false);
+  }, [showSnackbar]);
+
+  const loadEvolution = useCallback(
+    async (patientId: string) => {
+      if (!patientId) return;
+      setEvolutionLoading(true);
+      const res = await fetchPatientEvolution(patientId, { months: 3 });
+      if (res.success) {
+        setEvolution(res.data);
+      } else {
+        showSnackbar(res.error, "error");
+      }
+      setEvolutionLoading(false);
+    },
+    [showSnackbar],
+  );
+
+  const loadPatientList = useCallback(async () => {
+    const res = await listPatients({
+      status: UserStatus.ACTIVE,
+      limit: 50,
+    });
+
+    if (!res.success) {
+      showSnackbar(
+        res.error ?? "No se pudieron cargar los pacientes.",
+        "error",
+      );
+      return;
+    }
+
+    setPatients(res.data);
+    const preferred =
+      res.data.find((p) => p.id === auth.currentUser?.id) ?? res.data[0];
+    if (preferred) {
+      setSelectedPatientId(preferred.id);
+      void loadEvolution(preferred.id);
+    }
+  }, [auth.currentUser?.id, loadEvolution, showSnackbar]);
+
+  useEffect(() => {
+    void loadWeekly();
+    void loadGrouping();
+  }, [loadGrouping, loadWeekly]);
+
+  useEffect(() => {
+    void loadPatientList();
+  }, [loadPatientList]);
 
   const sentiment = analytics?.sentiment ?? {
     positive: 0,
@@ -58,7 +167,7 @@ const InsightsPage = () => {
     const total = timelineSlice.length - 1 || 1;
     return timelineSlice
       .map((entry, index) => {
-        const normalized = (clampScore(entry.dayScore) + 1) / 2; // 0..1
+        const normalized = (clampScore(entry.dayScore) + 1) / 2;
         const x = (index / total) * 100;
         const y = 45 - normalized * 35;
         return `${x},${y}`;
@@ -77,6 +186,31 @@ const InsightsPage = () => {
     setIsRefreshing(false);
   };
 
+  const handleGenerateWeekly = async () => {
+    setWeeklyLoading(true);
+    const res = await triggerWeeklyReport();
+    if (res.success) {
+      setWeeklyReports((prev) => {
+        const filtered = prev.filter(
+          (item) => item.reportId !== res.data.reportId,
+        );
+        return [res.data, ...filtered];
+      });
+      showSnackbar(res.message ?? "Reporte semanal generado.", "success");
+      void loadGrouping();
+    } else {
+      showSnackbar(res.error, "error");
+    }
+    setWeeklyLoading(false);
+  };
+
+  const handlePatientChange = async (id: string) => {
+    setSelectedPatientId(id);
+    await loadEvolution(id);
+  };
+
+  const latestWeeklyReport = weeklyReports[0];
+
   return (
     <Container label="Panel analítico">
       <FloatingCounselor />
@@ -86,7 +220,7 @@ const InsightsPage = () => {
             Actividad acumulada
           </p>
           <h1 className="text-3xl font-bold text-gray-900">
-            Intelligence emocional
+            Inteligencia emocional
           </h1>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -106,7 +240,6 @@ const InsightsPage = () => {
           </Button>
         </div>
       </div>
-
       <div className="mt-6 grid gap-6 lg:grid-cols-[320px,1fr]">
         <article className="rounded-3xl border border-gray-100 bg-white p-6 shadow-soft">
           <p className="text-sm font-semibold text-gray-500">
@@ -180,9 +313,18 @@ const InsightsPage = () => {
             )}
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <StatBadge label="Registros" value={analytics?.summary.totalEntries ?? 0} />
-            <StatBadge label="Días activos" value={analytics?.summary.daysTracked ?? 0} />
-            <StatBadge label="Racha actual" value={analytics?.summary.currentStreak ?? 0} />
+            <StatBadge
+              label="Registros"
+              value={analytics?.summary.totalEntries ?? 0}
+            />
+            <StatBadge
+              label="Días activos"
+              value={analytics?.summary.daysTracked ?? 0}
+            />
+            <StatBadge
+              label="Racha actual"
+              value={analytics?.summary.currentStreak ?? 0}
+            />
           </div>
         </article>
       </div>
@@ -229,12 +371,13 @@ const InsightsPage = () => {
                     </td>
                     <td className="py-3 pr-4">
                       <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${entry.dayScore >= 0.3
-                          ? "bg-emerald-50 text-emerald-700"
-                          : entry.dayScore <= -0.3
-                            ? "bg-rose-50 text-rose-700"
-                            : "bg-amber-50 text-amber-700"
-                          }`}
+                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                          entry.dayScore >= 0.3
+                            ? "bg-emerald-50 text-emerald-700"
+                            : entry.dayScore <= -0.3
+                              ? "bg-rose-50 text-rose-700"
+                              : "bg-amber-50 text-amber-700"
+                        }`}
                       >
                         {entry.dayScore.toFixed(2)}
                       </span>
@@ -244,12 +387,13 @@ const InsightsPage = () => {
                         {entry.moods.map((mood) => (
                           <span
                             key={`${entry.date}-${mood.moodId}`}
-                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${mood.tone === "positivo"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : mood.tone === "negativo"
-                                ? "bg-rose-50 text-rose-700"
-                                : "bg-amber-50 text-amber-700"
-                              }`}
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                              mood.tone === "positivo"
+                                ? "bg-emerald-50 text-emerald-700"
+                                : mood.tone === "negativo"
+                                  ? "bg-rose-50 text-rose-700"
+                                  : "bg-amber-50 text-amber-700"
+                            }`}
                           >
                             {mood.moodId}
                           </span>
@@ -263,21 +407,53 @@ const InsightsPage = () => {
         </div>
       </section>
 
+      <section className="mt-6 grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <WeeklyReportsPanel
+            report={latestWeeklyReport}
+            history={weeklyReports}
+            loading={weeklyLoading}
+            onGenerate={handleGenerateWeekly}
+            onRefresh={loadWeekly}
+          />
+        </div>
+        <PatientGroupingPanel
+          grouping={grouping}
+          loading={groupingLoading}
+          onRefresh={loadGrouping}
+        />
+      </section>
+
+      <section className="mt-6">
+        <PatientEvolutionPanel
+          patients={patients}
+          selectedPatientId={selectedPatientId}
+          onSelectPatient={handlePatientChange}
+          report={evolution}
+          loading={evolutionLoading}
+          onRefresh={() => loadEvolution(selectedPatientId)}
+        />
+      </section>
 
       <section className="mt-6 rounded-3xl border border-gray-100 bg-white p-6 shadow-soft">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Diagnóstico automático</h2>
-            <p className="text-sm text-gray-500">Análisis basado en tus emociones registradas</p>
+            <h2 className="text-xl font-bold text-gray-900">
+              Diagnóstico automático
+            </h2>
+            <p className="text-sm text-gray-500">
+              Análisis basado en tus emociones registradas
+            </p>
           </div>
-
         </header>
 
         <div className="mt-6 flex flex-col items-center text-center">
           <h3 className={`text-2xl font-semibold ${generateDiagnosis.color}`}>
             {generateDiagnosis.estado}
           </h3>
-          <p className="mt-2 max-w-lg text-gray-600">{generateDiagnosis.resumen}</p>
+          <p className="mt-2 max-w-lg text-gray-600">
+            {generateDiagnosis.resumen}
+          </p>
         </div>
 
         <div className="mt-8">
@@ -287,11 +463,10 @@ const InsightsPage = () => {
           <MoodEvolutionChart data={timelineSlice} loading={analyticsLoading} />
         </div>
 
-        <p className="mt-4 text-xs text-gray-400 text-center">
-          *Este diagnóstico es orientativo y no sustituye una evaluación profesional.*
+        <p className="mt-4 text-center text-xs text-gray-400">
+          *Este diagnostico es orientativo y no sustituye una evaluacion profesional.*
         </p>
       </section>
-
     </Container>
   );
 };
@@ -308,4 +483,416 @@ const StatBadge = ({ label, value }: StatBadgeProps) => (
   </div>
 );
 
+interface WeeklyReportsPanelProps {
+  report?: WeeklyReport;
+  history: WeeklyReport[];
+  loading: boolean;
+  onGenerate: () => Promise<void>;
+  onRefresh: () => Promise<void>;
+}
+
+const WeeklyReportsPanel = ({
+  report,
+  history,
+  loading,
+  onGenerate,
+  onRefresh,
+}: WeeklyReportsPanelProps) => {
+  const topPatients = useMemo(() => {
+    if (!report) return [] as PatientSummary[];
+    return [...report.patients]
+      .sort((a, b) => b.averageWellbeing - a.averageWellbeing)
+      .slice(0, 4);
+  }, [report]);
+
+  return (
+    <article className="h-full rounded-3xl border border-gray-100 bg-white p-6 shadow-soft">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-gray-500">
+            Reportes semanales automáticos
+          </p>
+          <h3 className="text-xl font-bold text-gray-900">
+            {report
+              ? `Semana ${report.weekNumber} (${report.weekStart} - ${report.weekEnd})`
+              : "Aún sin datos"}
+          </h3>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            disabled={loading}
+            onClick={onRefresh}
+          >
+            Actualizar
+          </Button>
+          <Button
+            startIcon={<SummarizeIcon />}
+            disabled={loading}
+            onClick={onGenerate}
+          >
+            Generar ahora
+          </Button>
+        </div>
+      </header>
+
+      {loading ? (
+        <div className="mt-4 text-sm text-gray-500">
+          Cargando reportes semanales...
+        </div>
+      ) : !report ? (
+        <div className="mt-4 text-sm text-gray-500">
+          Aún no hay reportes generados. Usa el botón para crear el primero.
+        </div>
+      ) : (
+        <>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <ReportStat
+              label="Pacientes activos"
+              value={report.summary.activePatients}
+              helper={`Total: ${report.summary.totalPatients}`}
+              icon={<GroupsIcon className="text-indigo-500" />}
+            />
+            <ReportStat
+              label="Bienestar promedio"
+              value={`${report.summary.averageWellbeing.toFixed(1)}%`}
+              helper={`${report.summary.totalEntries} registros`}
+              icon={<InsightsIcon className="text-emerald-500" />}
+            />
+            <ReportStat
+              label="Riesgo promedio"
+              value={`${report.summary.averageRisk.toFixed(1)}%`}
+              helper={`${report.trends.declining} en declive`}
+              icon={<TrendingDownIcon className="text-rose-500" />}
+            />
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl bg-indigo-50 p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-indigo-700">
+                <TrendingUpIcon fontSize="small" />
+                Evolución semanal
+              </div>
+              <div className="mt-3 flex flex-wrap gap-3 text-sm font-medium text-gray-800">
+                <span className="rounded-full bg-white px-3 py-1 shadow-sm">
+                  Mejorando: {report.trends.improving}
+                </span>
+                <span className="rounded-full bg-white px-3 py-1 shadow-sm">
+                  Estables: {report.trends.stable}
+                </span>
+                <span className="rounded-full bg-white px-3 py-1 shadow-sm">
+                  En riesgo: {report.trends.declining}
+                </span>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-gray-100 p-4">
+              <p className="text-sm font-semibold text-gray-600">
+                Mejores notas de la semana
+              </p>
+              <ul className="mt-3 space-y-2">
+                {topPatients.map((patient) => (
+                  <li
+                    key={patient.userId}
+                    className="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2 text-sm"
+                  >
+                    <span className="font-medium text-gray-800">
+                      {patient.name || "Paciente"}
+                    </span>
+                    <span className="text-xs font-semibold text-emerald-700">
+                      {patient.averageWellbeing.toFixed(1)}% bienestar
+                    </span>
+                  </li>
+                ))}
+                {topPatients.length === 0 && (
+                  <li className="text-sm text-gray-500">
+                    Sin datos de pacientes esta semana.
+                  </li>
+                )}
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-400">
+              Historial
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-600">
+              {history.slice(0, 4).map((item) => (
+                <span
+                  key={item.reportId}
+                  className="rounded-full border border-gray-200 px-3 py-1"
+                >
+                  {item.weekStart} · {item.summary.activePatients} pacientes
+                </span>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </article>
+  );
+};
+
+interface ReportStatProps {
+  label: string;
+  value: string | number;
+  helper?: string;
+  icon?: ReactNode;
+}
+
+const ReportStat = ({ label, value, helper, icon }: ReportStatProps) => (
+  <div className="flex items-start gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+    <div className="rounded-xl bg-indigo-50 p-2 text-indigo-600">{icon}</div>
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+        {label}
+      </p>
+      <p className="text-xl font-bold text-gray-900">{value}</p>
+      {helper && <p className="text-xs text-gray-500">{helper}</p>}
+    </div>
+  </div>
+);
+
+interface PatientGroupingPanelProps {
+  grouping: PatientGrouping | null;
+  loading: boolean;
+  onRefresh: () => Promise<void>;
+}
+
+const PatientGroupingPanel = ({
+  grouping,
+  loading,
+  onRefresh,
+}: PatientGroupingPanelProps) => {
+  const renderList = (items: PatientSummary[]) =>
+    items.slice(0, 4).map((item) => (
+      <li
+        key={item.userId}
+        className="flex items-center justify-between rounded-xl bg-white/70 px-3 py-2 text-sm shadow-sm"
+      >
+        <span className="font-medium text-gray-800">{item.name}</span>
+        <span className="text-xs text-gray-500">
+          {item.averageWellbeing.toFixed(1)}% · {item.averageRisk.toFixed(1)}%
+          riesgo
+        </span>
+      </li>
+    ));
+
+  return (
+    <article className="rounded-3xl border border-gray-100 bg-white p-6 shadow-soft">
+      <header className="flex items-center justify-between gap-2">
+        <div>
+          <p className="text-sm font-semibold text-gray-500">
+            Agrupación de pacientes
+          </p>
+          <h3 className="text-xl font-bold text-gray-900">
+            Mejores / promedio / en riesgo
+          </h3>
+        </div>
+        <Button
+          variant="outlined"
+          startIcon={<RefreshIcon />}
+          disabled={loading}
+          onClick={onRefresh}
+        >
+          Refrescar
+        </Button>
+      </header>
+
+      {loading ? (
+        <p className="mt-4 text-sm text-gray-500">Calculando agrupaciones...</p>
+      ) : grouping ? (
+        <>
+          <div className="mt-4 grid gap-3">
+            <div className="flex items-center justify-between rounded-2xl bg-emerald-50 px-4 py-3">
+              <span className="text-sm font-semibold text-emerald-700">
+                Mejores emociones
+              </span>
+              <span className="text-xs font-bold text-emerald-700">
+                {grouping.statistics.bestCount} pacientes
+              </span>
+            </div>
+            <ul className="space-y-2">{renderList(grouping.groups.best)}</ul>
+
+            <div className="flex items-center justify-between rounded-2xl bg-amber-50 px-4 py-3">
+              <span className="text-sm font-semibold text-amber-700">
+                Emociones medias
+              </span>
+              <span className="text-xs font-bold text-amber-700">
+                {grouping.statistics.averageCount} pacientes
+              </span>
+            </div>
+            <ul className="space-y-2">{renderList(grouping.groups.average)}</ul>
+
+            <div className="flex items-center justify-between rounded-2xl bg-rose-50 px-4 py-3">
+              <span className="text-sm font-semibold text-rose-700">
+                Mayor riesgo emocional
+              </span>
+              <span className="text-xs font-bold text-rose-700">
+                {grouping.statistics.worstCount} pacientes
+              </span>
+            </div>
+            <ul className="space-y-2">{renderList(grouping.groups.worst)}</ul>
+          </div>
+          <p className="mt-4 text-xs text-gray-500">
+            Ventanas analizadas: {grouping.period.from} → {grouping.period.to}
+          </p>
+        </>
+      ) : (
+        <p className="mt-4 text-sm text-gray-500">
+          No hay datos suficientes para agrupar pacientes.
+        </p>
+      )}
+    </article>
+  );
+};
+
+interface PatientEvolutionPanelProps {
+  patients: User[];
+  selectedPatientId: string;
+  onSelectPatient: (id: string) => void;
+  report: PatientEvolutionReport | null;
+  loading: boolean;
+  onRefresh: () => Promise<void> | void;
+}
+
+const PatientEvolutionPanel = ({
+  patients,
+  selectedPatientId,
+  onSelectPatient,
+  report,
+  loading,
+  onRefresh,
+}: PatientEvolutionPanelProps) => {
+  const latestWeeks = useMemo(
+    () => report?.evolution.weekly.slice(-3) ?? [],
+    [report?.evolution.weekly],
+  );
+
+  return (
+    <article className="rounded-3xl border border-gray-100 bg-white p-6 shadow-soft">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-gray-500">
+            Informe consolidado por paciente
+          </p>
+          <h3 className="text-xl font-bold text-gray-900">
+            Evolución emocional individual
+          </h3>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={selectedPatientId}
+            onChange={(e) => onSelectPatient(e.target.value)}
+            className="rounded-xl border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none"
+          >
+            {patients.map((patient) => (
+              <option key={patient.id} value={patient.id}>
+                {patient.name}
+              </option>
+            ))}
+          </select>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            disabled={loading || !selectedPatientId}
+            onClick={() => onRefresh()}
+          >
+            Actualizar
+          </Button>
+        </div>
+      </div>
+
+      {loading ? (
+        <p className="mt-4 text-sm text-gray-500">Generando informe...</p>
+      ) : report ? (
+        <>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <ReportStat
+              label="Bienestar promedio"
+              value={`${report.summary.averageWellbeing.toFixed(1)}%`}
+              helper={`${report.summary.totalEntries} registros`}
+              icon={<InsightsIcon className="text-emerald-500" />}
+            />
+            <ReportStat
+              label="Riesgo promedio"
+              value={`${report.summary.averageRisk.toFixed(1)}%`}
+              helper={`${report.summary.daysTracked} días activos`}
+              icon={<TrendingDownIcon className="text-rose-500" />}
+            />
+            <ReportStat
+              label="Racha actual"
+              value={report.summary.currentStreak}
+              helper={`Mejor racha: ${report.summary.longestStreak}`}
+              icon={<TrendingUpIcon className="text-indigo-500" />}
+            />
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl bg-gray-50 p-4">
+              <p className="text-sm font-semibold text-gray-700">
+                Últimas semanas
+              </p>
+              <ul className="mt-3 space-y-2 text-sm">
+                {latestWeeks.map((week) => (
+                  <li
+                    key={week.weekStart}
+                    className="flex items-center justify-between rounded-xl bg-white px-3 py-2 shadow-sm"
+                  >
+                    <span className="font-medium text-gray-800">
+                      {week.weekStart} → {week.weekEnd}
+                    </span>
+                    <span className="text-xs text-gray-600">
+                      {week.averageWellbeing.toFixed(1)}% bienestar ·{" "}
+                      {week.averageRisk.toFixed(1)}% riesgo
+                    </span>
+                  </li>
+                ))}
+                {latestWeeks.length === 0 && (
+                  <li className="text-sm text-gray-500">
+                    No hay semanas suficientes para mostrar.
+                  </li>
+                )}
+              </ul>
+            </div>
+
+            <div className="rounded-2xl border border-gray-100 p-4">
+              <p className="text-sm font-semibold text-gray-700">Top emociones</p>
+              <ul className="mt-3 space-y-2 text-sm">
+                {report.topMoods.map((mood) => (
+                  <li
+                    key={mood.moodId}
+                    className="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2"
+                  >
+                    <span className="font-medium text-gray-800">
+                      {mood.label}
+                    </span>
+                    <span className="text-xs text-gray-600">
+                      {mood.percentage.toFixed(1)}% · {mood.count} veces
+                    </span>
+                  </li>
+                ))}
+                {report.topMoods.length === 0 && (
+                  <li className="text-sm text-gray-500">
+                    No hay emociones registradas en el período.
+                  </li>
+                )}
+              </ul>
+            </div>
+          </div>
+        </>
+      ) : (
+        <p className="mt-4 text-sm text-gray-500">
+          Selecciona un paciente para generar su informe consolidado.
+        </p>
+      )}
+    </article>
+  );
+};
+
 export default InsightsPage;
+
+
+
