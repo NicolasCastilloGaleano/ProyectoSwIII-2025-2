@@ -133,8 +133,12 @@ const ManageUserPage = () => {
       showSnackbar(response.message ?? "Paciente actualizado.", "success");
     } else {
       const register = await registerAuthUser({
+        name: form.name.trim(),
         email: form.email.trim(),
-        password: passwords.password,
+        password: passwords.password.trim(),
+        phone: form.phone.trim() || undefined,
+        role: form.role,
+        status: form.status,
       });
       if (!register.success) {
         showSnackbar(

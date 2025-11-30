@@ -40,7 +40,7 @@ function normalizeText(value: string): string {
     .trim();
 }
 
-function buildSearchMetadata(name: string): {
+export function buildSearchMetadata(name: string): {
   searchableName?: string;
   searchTokens?: string[];
 } {
