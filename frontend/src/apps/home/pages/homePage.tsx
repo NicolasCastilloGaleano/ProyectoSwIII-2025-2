@@ -1,6 +1,7 @@
 ﻿import { CreateMoodModal } from "@/apps/moods/components";
 import { moods } from "@/apps/moods/data/moods";
 import type { MoodTimelineEntry } from "@/apps/moods/services/mood.interface";
+import RecommendationsPanel from "@/apps/recommendations/components/RecommendationsPanel";
 import { PRIVATEROUTES } from "@/routes/private.routes";
 import useStore from "@/store/useStore";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -101,6 +102,21 @@ export default function HomePage() {
     }
   };
 
+  const latestMoodId = useMemo(() => {
+    if (!analytics?.timeline?.length) return null;
+
+    const lastEntry = analytics.timeline[analytics.timeline.length - 1];
+    if (!lastEntry?.moods?.length) return null;
+
+    const sortedMoods = [...lastEntry.moods].sort((a, b) => {
+      if (!a.at) return 1;
+      if (!b.at) return -1;
+      return new Date(a.at).getTime() - new Date(b.at).getTime();
+    });
+
+    return sortedMoods[sortedMoods.length - 1]?.moodId;
+  }, [analytics]);
+
   return (
     <div className="space-y-8 px-2 py-6 md:px-8">
       <section className="grid gap-6 lg:grid-cols-3">
@@ -119,6 +135,14 @@ export default function HomePage() {
           loading={analyticsLoading}
         />
 
+      </section>
+
+      {/* Seccion de recomendaciones*/}
+      <section>
+        <RecommendationsPanel
+          moodId={latestMoodId}
+          accentColor={heroAccent}
+        />
       </section>
 
       <QuickActionsRow
