@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 
 import AssessmentIcon from "@mui/icons-material/Assessment";
-import ChecklistIcon from "@mui/icons-material/Checklist";
+import EventIcon from "@mui/icons-material/Event";
 import HomeIcon from "@mui/icons-material/Home";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import PersonIcon from "@mui/icons-material/Person";
@@ -29,9 +29,9 @@ const TabBar = () => {
         to: PRIVATEROUTES.ANALYTICS,
       },
       {
-        label: "Plan",
-        icon: <ChecklistIcon />,
-        to: PRIVATEROUTES.IMPROVEMENTPLAN,
+        label: "Eventos",
+        icon: <EventIcon />,
+        to: PRIVATEROUTES.EVENTS,
       },
       {
         label: "Perfil",

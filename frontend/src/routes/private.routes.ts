@@ -2,11 +2,17 @@ import { lazy } from "react";
 import type { RouteConfig } from "./route.interface";
 
 export enum PRIVATEROUTES {
-  HOMEPAGE = "/home",
   ANALYTICS = "/insights",
-  IMPROVEMENTPLAN = "/improvementplan",
-  PROFILEPAGE = "/profile",
   EVENTS = "/events",
+  EVENTS_CREATE = "/events/:kind/new",
+  EVENTS_DETAIL = "/events/:id",
+  EVENTS_DISCUSSION = "/events/discussion",
+  EVENTS_EDIT = "/events/:id/edit",
+  EVENTS_FORUM = "/events/forum",
+  EVENTS_INPERSON = "/events/inperson",
+  EVENTS_VIRTUAL = "/events/virtual",
+  HOMEPAGE = "/home",
+  PROFILEPAGE = "/profile",
   USERS_BASE = "/users",
   USERS_CREATE = "/users/create",
   USERS_EDIT = "/users/edit/",
@@ -25,10 +31,6 @@ export const PrivateRoutes: RouteConfig[] = [
     path: PRIVATEROUTES.ANALYTICS,
   },
   {
-    element: lazy(() => import("@/apps/home/pages/improvementPlan")),
-    path: PRIVATEROUTES.IMPROVEMENTPLAN,
-  },
-  {
     element: lazy(() => import("@/apps/home/pages/profilePage")),
     path: PRIVATEROUTES.PROFILEPAGE,
   },
@@ -36,13 +38,34 @@ export const PrivateRoutes: RouteConfig[] = [
     element: lazy(() => import("@/apps/events/pages/EventsHome")),
     path: PRIVATEROUTES.EVENTS,
   },
-  { element: lazy(() => import("@/apps/events/pages/ForumsList")), path: "/events/forum" },
-  { element: lazy(() => import("@/apps/events/pages/DiscussionsList")), path: "/events/discussion" },
-  { element: lazy(() => import("@/apps/events/pages/MeetingsVirtualList")), path: "/events/virtual" },
-  { element: lazy(() => import("@/apps/events/pages/MeetingsInpersonList")), path: "/events/inperson" },
-  { element: lazy(() => import("@/apps/events/pages/CreateEvent")), path: "/events/:kind/new" },
-  { element: lazy(() => import("@/apps/events/pages/EventDetail")), path: "/events/:id" },
-  { element: lazy(() => import("@/apps/events/pages/EditEvent")), path: "/events/:id/edit" },
+  {
+    element: lazy(() => import("@/apps/events/pages/ForumsList")),
+    path: PRIVATEROUTES.EVENTS_FORUM,
+  },
+  {
+    element: lazy(() => import("@/apps/events/pages/DiscussionsList")),
+    path: PRIVATEROUTES.EVENTS_DISCUSSION,
+  },
+  {
+    element: lazy(() => import("@/apps/events/pages/MeetingsVirtualList")),
+    path: PRIVATEROUTES.EVENTS_VIRTUAL,
+  },
+  {
+    element: lazy(() => import("@/apps/events/pages/MeetingsInpersonList")),
+    path: PRIVATEROUTES.EVENTS_INPERSON,
+  },
+  {
+    element: lazy(() => import("@/apps/events/pages/CreateEvent")),
+    path: PRIVATEROUTES.EVENTS_CREATE,
+  },
+  {
+    element: lazy(() => import("@/apps/events/pages/EventDetail")),
+    path: PRIVATEROUTES.EVENTS_DETAIL,
+  },
+  {
+    element: lazy(() => import("@/apps/events/pages/EditEvent")),
+    path: PRIVATEROUTES.EVENTS_EDIT,
+  },
   {
     path: PRIVATEROUTES.USERS_BASE,
     roles: ["admin", "user"],

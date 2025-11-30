@@ -1,10 +1,12 @@
+import { Button } from "@/components/forms";
+import { PRIVATEROUTES } from "@/routes";
 import { useNavigate } from "react-router-dom";
-import { PRIVATEROUTES } from "@/routes/private.routes";
 
 type EventKind = {
   key: string;
   title: string;
   description: string;
+  route: string;
 };
 
 const kinds: EventKind[] = [
@@ -12,21 +14,25 @@ const kinds: EventKind[] = [
     key: "forum",
     title: "Foros",
     description: "Espacios abiertos para temas de interés y comunidad.",
+    route: PRIVATEROUTES.EVENTS_FORUM,
   },
   {
     key: "discussion",
     title: "Discusiones",
     description: "Hilos estructurados para debatir y tomar decisiones.",
+    route: PRIVATEROUTES.EVENTS_DISCUSSION,
   },
   {
     key: "virtual",
     title: "Reuniones virtuales",
     description: "Sesiones por videollamada con agenda y notas.",
+    route: PRIVATEROUTES.EVENTS_VIRTUAL,
   },
   {
     key: "inperson",
     title: "Reuniones presenciales",
     description: "Encuentros físicos con asistencia y seguimiento.",
+    route: PRIVATEROUTES.EVENTS_INPERSON,
   },
 ];
 
@@ -67,15 +73,6 @@ export default function EventsHome() {
               ))}
             </select>
           </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className="rounded-2xl bg-indigo-600 px-4 py-2 text-white shadow transition hover:bg-indigo-700"
-              onClick={() => navigate(PRIVATEROUTES.HOMEPAGE)}
-            >
-              Volver al inicio
-            </button>
-          </div>
         </div>
       </section>
 
@@ -89,21 +86,8 @@ export default function EventsHome() {
               <h2 className="text-lg font-semibold text-gray-900">{k.title}</h2>
               <p className="mt-1 text-sm text-gray-600">{k.description}</p>
             </div>
-            <div className="mt-4 flex gap-2">
-              <button
-                type="button"
-                className="rounded-2xl border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:border-indigo-300 hover:text-indigo-700"
-                onClick={() => navigate(`/events/${k.key}`)}
-              >
-                Explorar
-              </button>
-              <button
-                type="button"
-                className="rounded-2xl bg-indigo-600 px-3 py-2 text-sm text-white hover:bg-indigo-700"
-                onClick={() => navigate(`/events/${k.key}`)}
-              >
-                Crear
-              </button>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button onClick={() => navigate(k.route)}>Explorar</Button>
             </div>
           </article>
         ))}

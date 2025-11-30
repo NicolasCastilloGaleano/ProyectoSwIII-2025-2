@@ -1,25 +1,13 @@
-import { SOFTWARE_THEME } from "@/config";
 import FilterAltOff from "@mui/icons-material/FilterAltOff";
-import NavigateNext from "@mui/icons-material/NavigateNext";
-import {
-  Breadcrumbs,
-  Chip,
-  Container as Div,
-  Link,
-  Typography,
-} from "@mui/material";
-import SkeletonList from "./SkeletonList";
+import { Chip, Container as Div, Typography } from "@mui/material";
+import PageBreadcrumbs, {
+  type BreadcrumbItem,
+} from "../layouts/PageBreadcrumbs";
 
 interface ContainerProps {
   children: React.ReactNode;
   label: string;
 }
-
-export type BreadcrumbItem = {
-  label: string;
-  onClick?: () => void;
-  isLoading?: boolean;
-};
 
 interface ContainerHeaderProps {
   children: React.ReactNode;
@@ -50,6 +38,8 @@ const BaseContainer = ({ children, label }: ContainerProps) => {
         {label}
       </Typography>
 
+      <hr className="my-2" />
+
       {children}
     </Div>
   );
@@ -58,47 +48,9 @@ const BaseContainer = ({ children, label }: ContainerProps) => {
 const Container = Object.assign(BaseContainer, {
   Header: ({ children, breadcrumbItems }: ContainerHeaderProps) => (
     <Div className="p-0 md:p-4" maxWidth="xl" sx={{ gap: 4 }}>
-      <Breadcrumbs separator={<NavigateNext />} maxItems={3}>
-        {breadcrumbItems.map((item, index) => {
-          if (item.isLoading) {
-            return <SkeletonList count={1} height={32} width={180} />;
-          }
+      <PageBreadcrumbs items={breadcrumbItems} maxItems={3} />
 
-          const isLast = index === breadcrumbItems.length - 1;
-          return isLast ? (
-            <Typography
-              key={index}
-              className="capitalize"
-              color="text.primary"
-              component="h2"
-              sx={{ cursor: "default", fontWeight: "bold", color: "#1D1D1B" }}
-              variant="h5"
-            >
-              {item.label}
-            </Typography>
-          ) : (
-            <Link
-              key={index}
-              className="capitalize"
-              color="inherit"
-              component="h2"
-              onClick={item.onClick}
-              sx={{
-                cursor: "pointer",
-                fontWeight: "bold",
-                color: "#1D1D1B",
-                "&:hover": {
-                  color: SOFTWARE_THEME.primary,
-                },
-              }}
-              underline="hover"
-              variant="h5"
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-      </Breadcrumbs>
+      <hr className="my-2" />
 
       {children}
     </Div>
