@@ -32,6 +32,7 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAutomaticDiagnosis } from "../hooks/useAutomaticDiagnosis";
+import { FloatingCounselor } from "../components/floatingCounselor";
 
 const clampScore = (value: number) => Math.max(-1, Math.min(1, value));
 
@@ -210,7 +211,8 @@ const InsightsPage = () => {
   const latestWeeklyReport = weeklyReports[0];
 
   return (
-    <Container label="Panel analitico">
+    <Container label="Panel analítico">
+      <FloatingCounselor />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-gray-500">
