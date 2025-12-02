@@ -18,6 +18,7 @@ export interface UserData {
   name: string;
   role?: string;
   roles: string[];
+  permissions?: string[];
   status?: string;
   tipo?: string;
   celular?: string;

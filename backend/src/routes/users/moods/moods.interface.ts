@@ -2,8 +2,8 @@ export interface MoodSelection {
   moodId: string;
   note?: string;
   /**
-   * Momento en el que el paciente registr�� la emoci��n (ISO8601).
-   * Si no se env��a, el backend asignar�� la hora actual.
+   * Momento en el que el paciente registró la emoción (ISO8601).
+   * Si no se envía, el backend asignará la hora actual.
    */
   at?: string;
 }

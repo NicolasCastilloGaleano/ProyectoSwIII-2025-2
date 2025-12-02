@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createUserSchema } from "../users/users.validators";
 import { ApiResponse, CreateUserDto, UserData } from "./auth.interface";
 import { createUser, getUserFromToken } from "./auth.service";
+import { UserRole, UserStatus } from "../users/users.interface";
 
 const registerUserSchema = createUserSchema
   .omit({ photoURL: true })
@@ -71,8 +72,8 @@ export const registerUserController = async (
       password: payload.password.trim(),
       name: payload.name.trim(),
       phone: payload.phone ? payload.phone.trim() : null,
-      role: payload.role,
-      status: payload.status,
+      role: UserRole.USER,
+      status: payload.status ?? UserStatus.ACTIVE,
       accentColor: payload.accentColor ?? null,
     };
 

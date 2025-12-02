@@ -15,6 +15,7 @@ type RemoteUserPayload = {
   name?: string;
   role?: string;
   roles?: string[];
+  permissions?: string[];
   status?: string;
   celular?: string | null;
   phone?: string | null;
@@ -69,6 +70,12 @@ const normalizeRemoteUser = (payload: RemoteUserPayload): User => {
       "Usuario",
     email: payload.correo ?? payload.email ?? "",
     role: resolveRole(),
+    roles: Array.isArray(payload.roles)
+      ? payload.roles.map((r) => r.toUpperCase() as UserRole)
+      : [resolveRole()],
+    permissions: Array.isArray(payload.permissions)
+      ? payload.permissions
+      : undefined,
     status: resolveStatus(),
     phone: payload.celular ?? payload.phone ?? null,
     photoURL: payload.logoURL ?? payload.photoURL ?? null,

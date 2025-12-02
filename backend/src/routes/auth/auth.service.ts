@@ -1,4 +1,5 @@
 import { COLLECTIONS } from "@data/constants";
+import { ROLE_PERMISSIONS } from "@data/permissions";
 import { formatDate } from "@utils/date";
 import { auth, db } from "../../config/firebase";
 import { buildSearchMetadata } from "../users/users.service";
@@ -76,13 +77,23 @@ export const getUserFromToken = async (uid: string): Promise<UserData> => {
 
   const userData = userDoc.data() as UserData;
 
+  const primaryRole = (userData.role as string | undefined) ?? UserRole.USER;
+  const roles = (() => {
+    const base =
+      Array.isArray(userData.roles) && userData.roles.length > 0
+        ? userData.roles
+        : [primaryRole];
+    return Array.from(new Set(base.map((r) => r?.toString().toUpperCase())));
+  })();
+
   const normalizedUser: UserData = {
     ...userData,
     id: userDoc.id,
     uid: userDoc.id,
     correo: userData.correo || userData.email || "",
     name: userData.name || userData.name || "",
-    roles: Array.isArray(userData.roles) ? userData.roles : [],
+    role: primaryRole,
+    roles,
     tipo: userData.tipo,
     celular: userData.celular,
     ciudad: userData.ciudad,
@@ -97,6 +108,17 @@ export const getUserFromToken = async (uid: string): Promise<UserData> => {
     responsable: userData.responsable,
     responsableNombre: userData.responsableNombre,
     logoURL: userData.logoURL,
+    permissions: (() => {
+      const perms = new Set<string>();
+      roles.forEach((r) => {
+        const upper = r.toUpperCase() as UserRole;
+        ROLE_PERMISSIONS[upper]?.forEach((p) => perms.add(p));
+      });
+      if (perms.size === 0) {
+        ROLE_PERMISSIONS[UserRole.USER]?.forEach((p) => perms.add(p));
+      }
+      return Array.from(perms);
+    })(),
   };
 
   return normalizedUser;

@@ -5,6 +5,7 @@ import { getPatientById, updatePatient } from "@/apps/users/services/users";
 import {
   UserRole,
   UserStatus,
+  type UpdateUserDTO,
   type User,
 } from "@/apps/users/services/users.interfaces";
 import { PRIVATEROUTES } from "@/routes/private.routes";
@@ -42,7 +43,28 @@ const ManageUserPage = () => {
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
   const showSnackbar = useStore((state) => state.showSnackbar);
+  const currentUser = useStore((state) => state.authState.auth.currentUser);
   const navigate = useNavigate();
+
+  const isStaff = useMemo(
+    () => [UserRole.ADMIN, UserRole.STAFF].includes(currentUser?.role ?? UserRole.USER),
+    [currentUser?.role],
+  );
+  const isSelfEdit = isEditMode && currentUser?.id === id;
+  const canManageRoles = isStaff;
+  const canEditTarget = isStaff || isSelfEdit;
+
+  useEffect(() => {
+    if (!isEditMode && !isStaff) {
+      showSnackbar("No tienes permisos para crear usuarios.", "warning");
+      navigate(PRIVATEROUTES.HOMEPAGE, { replace: true });
+    }
+
+    if (isEditMode && !canEditTarget) {
+      showSnackbar("Solo puedes editar tu propio perfil.", "warning");
+      navigate(PRIVATEROUTES.PROFILEPAGE, { replace: true });
+    }
+  }, [canEditTarget, isEditMode, isStaff, navigate, showSnackbar]);
 
   useEffect(() => {
     if (!isEditMode || !id) {
@@ -118,13 +140,21 @@ const ManageUserPage = () => {
     if (!canSubmit || saving) return;
     setSaving(true);
 
-    if (isEditMode && id) {
-      const response = await updatePatient(id, {
+    const buildUpdatePayload = (): UpdateUserDTO => {
+      const phone = form.phone.trim();
+      const payload: UpdateUserDTO = {
         name: form.name.trim(),
-        role: form.role,
-        status: form.status,
-        phone: form.phone.trim() || null,
-      });
+        phone: phone || null,
+      };
+      if (canManageRoles) {
+        payload.role = form.role;
+        payload.status = form.status;
+      }
+      return payload;
+    };
+
+    if (isEditMode && id) {
+      const response = await updatePatient(id, buildUpdatePayload());
       if (!response.success) {
         showSnackbar(response.error, "error");
         setSaving(false);
@@ -137,8 +167,8 @@ const ManageUserPage = () => {
         email: form.email.trim(),
         password: passwords.password.trim(),
         phone: form.phone.trim() || undefined,
-        role: form.role,
-        status: form.status,
+        role: canManageRoles ? form.role : UserRole.USER,
+        status: canManageRoles ? form.status : UserStatus.ACTIVE,
       });
       if (!register.success) {
         showSnackbar(
@@ -157,12 +187,7 @@ const ManageUserPage = () => {
         setSaving(false);
         return;
       }
-      const response = await updatePatient(newId, {
-        name: form.name.trim(),
-        role: form.role,
-        status: form.status,
-        phone: form.phone.trim() || null,
-      });
+      const response = await updatePatient(newId, buildUpdatePayload());
       if (!response.success) {
         showSnackbar(response.error, "error");
         setSaving(false);
@@ -171,15 +196,26 @@ const ManageUserPage = () => {
       showSnackbar(response.message ?? "Paciente creado.", "success");
     }
     setSaving(false);
-    navigate(PRIVATEROUTES.USERS_LIST, { replace: true });
+    const targetRoute = isStaff
+      ? PRIVATEROUTES.USERS_LIST
+      : PRIVATEROUTES.PROFILEPAGE;
+    navigate(targetRoute, { replace: true });
   };
 
   const handleCancel = () => {
-    navigate(PRIVATEROUTES.USERS_LIST);
+    if (isStaff) {
+      navigate(PRIVATEROUTES.USERS_LIST);
+    } else {
+      navigate(PRIVATEROUTES.PROFILEPAGE);
+    }
   };
 
-  const roleOptions = Object.values(UserRole);
-  const statusOptions = Object.values(UserStatus);
+  const roleOptions = canManageRoles
+    ? Object.values(UserRole)
+    : [form.role];
+  const statusOptions = canManageRoles
+    ? Object.values(UserStatus)
+    : [form.status];
 
   return (
     <DialogLayout
@@ -246,7 +282,7 @@ const ManageUserPage = () => {
               label="Rol"
               value={form.role}
               onChange={handleChange("role")}
-              disabled={saving}
+              disabled={saving || !canManageRoles}
             >
               {roleOptions.map((role) => (
                 <MenuItem key={role} value={role}>
@@ -258,7 +294,7 @@ const ManageUserPage = () => {
               label="Estado"
               value={form.status}
               onChange={handleChange("status")}
-              disabled={saving}
+              disabled={saving || !canManageRoles}
             >
               {statusOptions.map((status) => (
                 <MenuItem key={status} value={status}>

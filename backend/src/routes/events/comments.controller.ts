@@ -11,7 +11,7 @@ export async function list(req: Request, res: Response) {
 
 export async function create(req: Request, res: Response) {
   const { id } = req.params; // event id
-  const userId = req.user?.uid ?? "anonymous";
+  const userId = req.authUser?.uid ?? req.user?.uid ?? "anonymous";
   const { text } = createCommentSchema.parse(req.body);
 
   const event = await eventsSvc.getEventById(id);
@@ -20,13 +20,15 @@ export async function create(req: Request, res: Response) {
     return res.status(400).json({ error: "Los comentarios solo aplican a foros y discusiones" });
   }
 
-  const comment = await svc.addComment(id, userId, text, req.user?.name || req.user?.email);
+  const authorName =
+    req.authUser?.userDoc?.name || req.user?.name || req.user?.email;
+  const comment = await svc.addComment(id, userId, text, authorName);
   return res.status(201).json({ data: comment });
 }
 
 export async function remove(req: Request, res: Response) {
   const { id, commentId } = req.params;
-  const userId = req.user?.uid ?? "anonymous";
+  const userId = req.authUser?.uid ?? req.user?.uid ?? "anonymous";
   const ok = await svc.deleteComment(id, commentId, userId);
   if (!ok) return res.status(403).json({ error: "No autorizado o no encontrado" });
   return res.json({ ok: true });

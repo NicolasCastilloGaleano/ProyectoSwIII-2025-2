@@ -5,6 +5,7 @@ import type {
   Query,
   QueryDocumentSnapshot,
 } from "firebase-admin/firestore";
+import { invalidateAuthContext } from "@middlewares/verifyFirebaseJwt";
 import { userConverter } from "./users.converter";
 import {
   CreateUserDTO,
@@ -148,10 +149,12 @@ export async function list(filters: ListUsersFilters = {}): Promise<User[]> {
 export async function create(data: CreateUserDTO): Promise<{ id: string }> {
   const now = Date.now();
   const searchMeta = buildSearchMetadata(data.name);
+  const role = data.role ?? UserRole.USER;
   const toSave: UserDoc = {
     name: data.name,
     email: data.email,
-    role: data.role ?? UserRole.USER,
+    role,
+    roles: [role],
     status: data.status ?? UserStatus.ACTIVE,
     phone: data.phone ?? null,
     photoURL: data.photoURL ?? null,
@@ -160,6 +163,7 @@ export async function create(data: CreateUserDTO): Promise<{ id: string }> {
     ...searchMeta,
   };
   const ref = await COL.add(toSave);
+  invalidateAuthContext(ref.id);
   return { id: ref.id };
 }
 
@@ -176,7 +180,7 @@ export async function update(
 ): Promise<{ ok: true }> {
   const patch: Partial<UserDoc> = {
     ...(data.name !== undefined && { name: data.name }),
-    ...(data.role !== undefined && { role: data.role }),
+    ...(data.role !== undefined && { role: data.role, roles: [data.role] }),
     ...(data.status !== undefined && { status: data.status }),
     ...(data.phone !== undefined && { phone: data.phone ?? null }),
     ...(data.photoURL !== undefined && { photoURL: data.photoURL ?? null }),
@@ -191,10 +195,12 @@ export async function update(
   }
 
   await COL.doc(id).set(patch, { merge: true });
+  invalidateAuthContext(id);
   return { ok: true };
 }
 
 export async function remove(id: string): Promise<{ ok: true }> {
   await COL.doc(id).delete();
+  invalidateAuthContext(id);
   return { ok: true };
 }

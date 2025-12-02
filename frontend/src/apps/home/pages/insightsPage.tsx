@@ -10,6 +10,7 @@ import {
 } from "@/apps/reports/services/reports.service";
 import { listPatients } from "@/apps/users/services/users";
 import {
+  UserRole,
   UserStatus,
   type User,
 } from "@/apps/users/services/users.interfaces";
@@ -63,6 +64,10 @@ const InsightsPage = () => {
 
   const today = new Date();
   const focusMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+  const isStaff = useMemo(
+    () => [UserRole.ADMIN, UserRole.STAFF].includes(auth.currentUser?.role ?? UserRole.USER),
+    [auth.currentUser?.role],
+  );
 
   useEffect(() => {
     if (!auth.currentUser?.id) return;
@@ -74,6 +79,10 @@ const InsightsPage = () => {
   }, [auth.currentUser?.id, focusMonth, loadAnalytics]);
 
   const loadWeekly = useCallback(async () => {
+    if (!isStaff) {
+      setWeeklyReports([]);
+      return;
+    }
     setWeeklyLoading(true);
     const res = await fetchWeeklyReports(5);
     if (res.success) {
@@ -82,9 +91,13 @@ const InsightsPage = () => {
       showSnackbar(res.error, "error");
     }
     setWeeklyLoading(false);
-  }, [showSnackbar]);
+  }, [isStaff, showSnackbar]);
 
   const loadGrouping = useCallback(async () => {
+    if (!isStaff) {
+      setGrouping(null);
+      return;
+    }
     setGroupingLoading(true);
     const res = await fetchPatientGrouping({ months: 3 });
     if (res.success) {
@@ -93,7 +106,7 @@ const InsightsPage = () => {
       showSnackbar(res.error, "error");
     }
     setGroupingLoading(false);
-  }, [showSnackbar]);
+  }, [isStaff, showSnackbar]);
 
   const loadEvolution = useCallback(
     async (patientId: string) => {
@@ -111,6 +124,15 @@ const InsightsPage = () => {
   );
 
   const loadPatientList = useCallback(async () => {
+    if (!isStaff) {
+      if (auth.currentUser?.id) {
+        setPatients([auth.currentUser]);
+        setSelectedPatientId(auth.currentUser.id);
+        void loadEvolution(auth.currentUser.id);
+      }
+      return;
+    }
+
     const res = await listPatients({
       status: UserStatus.ACTIVE,
       limit: 50,
@@ -131,7 +153,7 @@ const InsightsPage = () => {
       setSelectedPatientId(preferred.id);
       void loadEvolution(preferred.id);
     }
-  }, [auth.currentUser?.id, loadEvolution, showSnackbar]);
+  }, [auth.currentUser, isStaff, loadEvolution, showSnackbar]);
 
   useEffect(() => {
     void loadWeekly();
@@ -186,6 +208,10 @@ const InsightsPage = () => {
   };
 
   const handleGenerateWeekly = async () => {
+    if (!isStaff) {
+      showSnackbar("Solo el personal autorizado puede generar reportes.", "warning");
+      return;
+    }
     setWeeklyLoading(true);
     const res = await triggerWeeklyReport();
     if (res.success) {
@@ -223,13 +249,15 @@ const InsightsPage = () => {
           </h1>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outlined"
-            startIcon={<GroupsIcon />}
-            onClick={() => navigate(PRIVATEROUTES.USERS_LIST)}
-          >
-            Ver pacientes
-          </Button>
+          {isStaff && (
+            <Button
+              variant="outlined"
+              startIcon={<GroupsIcon />}
+              onClick={() => navigate(PRIVATEROUTES.USERS_LIST)}
+            >
+              Ver pacientes
+            </Button>
+          )}
           <Button
             startIcon={<RefreshIcon />}
             disabled={analyticsLoading || isRefreshing}
@@ -406,22 +434,24 @@ const InsightsPage = () => {
         </div>
       </section>
 
-      <section className="mt-6 grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <WeeklyReportsPanel
-            report={latestWeeklyReport}
-            history={weeklyReports}
-            loading={weeklyLoading}
-            onGenerate={handleGenerateWeekly}
-            onRefresh={loadWeekly}
+      {isStaff && (
+        <section className="mt-6 grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <WeeklyReportsPanel
+              report={latestWeeklyReport}
+              history={weeklyReports}
+              loading={weeklyLoading}
+              onGenerate={handleGenerateWeekly}
+              onRefresh={loadWeekly}
+            />
+          </div>
+          <PatientGroupingPanel
+            grouping={grouping}
+            loading={groupingLoading}
+            onRefresh={loadGrouping}
           />
-        </div>
-        <PatientGroupingPanel
-          grouping={grouping}
-          loading={groupingLoading}
-          onRefresh={loadGrouping}
-        />
-      </section>
+        </section>
+      )}
 
       <section className="mt-6">
         <PatientEvolutionPanel

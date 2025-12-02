@@ -4,10 +4,14 @@ import Group from "@mui/icons-material/Group";
 import Insights from "@mui/icons-material/Insights";
 
 interface QuickActionsProps {
-  onPatients: () => void;
-  onInsights: () => void;
-  onCalendar: () => void;
-  onEvents: () => void;
+  onPatients?: () => void;
+  onInsights?: () => void;
+  onCalendar?: () => void;
+  onEvents?: () => void;
+  showPatients?: boolean;
+  showInsights?: boolean;
+  showCalendar?: boolean;
+  showEvents?: boolean;
 }
 
 const QuickActionsRow = ({
@@ -15,6 +19,10 @@ const QuickActionsRow = ({
   onInsights,
   onCalendar,
   onEvents,
+  showPatients = true,
+  showInsights = true,
+  showCalendar = true,
+  showEvents = true,
 }: QuickActionsProps) => {
   const actions = [
     {
@@ -22,26 +30,30 @@ const QuickActionsRow = ({
       description: "Explora y filtra tu lista de pacientes.",
       icon: <Group fontSize="large" />,
       onClick: onPatients,
+      show: showPatients && !!onPatients,
     },
     {
       label: "Analítica",
       description: "Profundiza en gráficos y tendencias.",
       icon: <Insights fontSize="large" />,
       onClick: onInsights,
+      show: showInsights && !!onInsights,
     },
     {
       label: "Eventos",
       description: "Foros, discusiones y reuniones.",
       icon: <EmojiEvents fontSize="large" />,
       onClick: onEvents,
+      show: showEvents && !!onEvents,
     },
     {
       label: "Calendario",
       description: "Visualiza tu mes emocional completo.",
       icon: <CalendarToday fontSize="large" />,
       onClick: onCalendar,
+      show: showCalendar && !!onCalendar,
     },
-  ];
+  ].filter((a) => a.show);
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
