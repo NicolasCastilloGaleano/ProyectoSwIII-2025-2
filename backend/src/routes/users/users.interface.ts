@@ -17,6 +17,7 @@ export interface UserDoc {
   name: string;
   email: string;
   role: UserRole;
+  roles?: UserRole[];
   status: UserStatus;
   phone?: string | null;
   photoURL?: string | null;

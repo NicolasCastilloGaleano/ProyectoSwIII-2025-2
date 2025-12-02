@@ -14,6 +14,7 @@ export const userConverter: FirestoreDataConverter<UserDoc> = {
       name: d.name,
       email: d.email,
       role: d.role,
+      roles: Array.isArray(d.roles) ? d.roles : undefined,
       status: d.status,
       phone: d.phone ?? null,
       photoURL: d.photoURL ?? null,

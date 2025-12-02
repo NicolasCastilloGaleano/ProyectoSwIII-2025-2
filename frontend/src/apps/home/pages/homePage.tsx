@@ -50,6 +50,8 @@ export default function HomePage() {
   const heroAvatar = auth.currentUser?.photoURL ?? null;
   const heroDisplayName =
     auth.currentUser?.name ?? auth.currentUser?.email ?? "Bienvenido";
+  const canManagePatients =
+    auth.currentUser?.permissions?.includes("users:read:any") ?? false;
 
   const timeline = useMemo<MoodTimelineEntry[]>(() => {
     if (!analytics?.timeline) return [];
@@ -146,7 +148,11 @@ export default function HomePage() {
       </section>
 
       <QuickActionsRow
-        onPatients={() => navigate(PRIVATEROUTES.USERS_LIST)}
+        onPatients={
+          canManagePatients
+            ? () => navigate(PRIVATEROUTES.USERS_LIST)
+            : undefined
+        }
         onInsights={() => navigate(PRIVATEROUTES.ANALYTICS)}
         onEvents={() => navigate(PRIVATEROUTES.EVENTS)}
         onCalendar={() =>
@@ -155,6 +161,7 @@ export default function HomePage() {
             block: "start",
           })
         }
+        showPatients={canManagePatients}
       />
 
       <section ref={calendarRef} className="grid gap-6 lg:grid-cols-3">

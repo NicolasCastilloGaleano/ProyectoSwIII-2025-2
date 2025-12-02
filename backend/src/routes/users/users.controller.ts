@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { hasPermission } from "@middlewares/verifyFirebaseJwt";
 import * as service from "./users.service";
 import {
   ListUsersFilters,
@@ -29,6 +30,19 @@ function parseStatusParam(value: unknown): UserStatus | undefined {
 
 export async function list(req: Request, res: Response, next: NextFunction) {
   try {
+    const canReadAny = hasPermission(req.authUser, "users:read:any");
+
+    if (!canReadAny) {
+      const selfId = req.authUser?.uid;
+      if (!selfId) return res.status(403).json({ error: "Permisos insuficientes" });
+      try {
+        const self = await service.getById(selfId);
+        return res.json([self]);
+      } catch (err) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+    }
+
     const filters: ListUsersFilters = {};
     const id = getQueryString(req.query.id);
     if (id) filters.id = id;
@@ -73,8 +87,25 @@ export async function getById(req: Request, res: Response, next: NextFunction) {
 export async function update(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = updateUserSchema.parse(req.body);
+    const isSelf = req.authUser?.uid === req.params.id;
+    const canEditAny = hasPermission(req.authUser, "users:write:any");
+
+    if (isSelf && !canEditAny) {
+      const allowedFields = ["name", "phone", "photoURL", "accentColor"];
+      const filteredPatch = Object.fromEntries(
+        Object.entries(parsed).filter(([key]) => allowedFields.includes(key)),
+      ) as typeof parsed;
+
+      if (Object.keys(filteredPatch).length === 0) {
+        return res.status(403).json({ error: "No puedes modificar estos campos" });
+      }
+
+      const out = await service.update(req.params.id, filteredPatch);
+      return res.json(out);
+    }
+
     const out = await service.update(req.params.id, parsed);
-    res.json(out);
+    return res.json(out);
   } catch (e) {
     next(e);
   }

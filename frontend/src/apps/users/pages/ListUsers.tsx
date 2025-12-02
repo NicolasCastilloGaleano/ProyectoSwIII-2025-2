@@ -20,7 +20,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { USER_NAMES } from "../data";
 import { listPatients } from "../services/users";
-import { UserStatus, type User } from "../services/users.interfaces";
+import { UserRole, UserStatus, type User } from "../services/users.interfaces";
 
 type StatusFilter = "ALL" | UserStatus;
 
@@ -110,11 +110,17 @@ const ListUsers = () => {
   const dataCountRef = useRef(0);
 
   const showSnackbar = useStore((state) => state.showSnackbar);
+  const currentUser = useStore((state) => state.authState.auth.currentUser);
   const navigate = useNavigate();
+  const isStaff = useMemo(
+    () => [UserRole.ADMIN, UserRole.STAFF].includes(currentUser?.role ?? UserRole.USER),
+    [currentUser?.role],
+  );
 
   const normalizedQuery = query.trim().toLowerCase();
 
   const fetchPatients = useCallback(async () => {
+    if (!isStaff) return;
     const shouldShowSkeleton = dataCountRef.current === 0;
     if (shouldShowSkeleton) {
       setIsLoading(true);
@@ -149,9 +155,14 @@ const ListUsers = () => {
       setIsLoading(false);
     }
     setIsRefreshing(false);
-  }, [normalizedQuery, showSnackbar, statusFilter]);
+  }, [isStaff, normalizedQuery, showSnackbar, statusFilter]);
 
   useEffect(() => {
+    if (!isStaff) {
+      showSnackbar("Necesitas permisos de STAFF o ADMIN para ver pacientes.", "warning");
+      navigate(PRIVATEROUTES.HOMEPAGE, { replace: true });
+      return;
+    }
     let handler: ReturnType<typeof setTimeout> | undefined;
     if (normalizedQuery.length > 0) {
       handler = setTimeout(() => {
@@ -163,7 +174,7 @@ const ListUsers = () => {
     return () => {
       if (handler) clearTimeout(handler);
     };
-  }, [normalizedQuery, fetchPatients]);
+  }, [fetchPatients, isStaff, navigate, normalizedQuery, showSnackbar]);
 
   const metrics = useMemo(() => {
     const active = patients.filter((p) => p.status === UserStatus.ACTIVE).length;
@@ -215,6 +226,19 @@ const ListUsers = () => {
   };
 
   const filteredQuery = normalizedQuery.replace(/[.*+?^${}()|[\]\\]/g, "");
+
+  if (!isStaff) {
+    return (
+      <div className="py-8">
+        <div className="rounded-2xl bg-white p-6 text-center shadow-sm">
+          <p className="text-lg font-semibold text-gray-800">Acceso restringido</p>
+          <p className="mt-2 text-sm text-gray-600">
+            Solo el personal autorizado puede gestionar el panel de pacientes.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Container label="Directorio de pacientes">

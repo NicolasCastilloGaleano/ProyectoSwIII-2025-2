@@ -6,6 +6,7 @@ import { Button } from "@/components/forms";
 import { PageBreadcrumbs } from "@/components/layouts";
 import type { BreadcrumbItem } from "@/components/layouts/PageBreadcrumbs";
 import { PRIVATEROUTES } from "@/routes";
+import useStore from "@/store/useStore";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -13,6 +14,8 @@ export default function ForumsList() {
   const navigate = useNavigate();
   const [items, setItems] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const currentUser = useStore((s) => s.authState.auth.currentUser);
+  const canManage = currentUser?.permissions?.includes("events:manage");
 
   useEffect(() => {
     (async () => {
@@ -41,15 +44,17 @@ export default function ForumsList() {
               Temas abiertos de la comunidad.
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={() =>
-                navigate(PRIVATEROUTES.EVENTS_CREATE.replace(":kind", "forum"))
-              }
-            >
-              Crear foro
-            </Button>
-          </div>
+          {canManage && (
+            <div className="flex gap-2">
+              <Button
+                onClick={() =>
+                  navigate(PRIVATEROUTES.EVENTS_CREATE.replace(":kind", "forum"))
+                }
+              >
+                Crear foro
+              </Button>
+            </div>
+          )}
         </header>
         {loading ? (
           <p className="text-gray-500">Cargando...</p>

@@ -13,16 +13,14 @@ const TabBar = () => {
   const { pathname } = useLocation();
 
   const { screen, setCurrentTab } = useStore((s) => s.screenState);
+  const currentUser = useStore((s) => s.authState.auth.currentUser);
+  const canSeePatients =
+    currentUser?.permissions?.includes("users:read:any") ?? false;
 
   // Define aquí el orden y rutas de las tabs
-  const tabs = useMemo(
-    () => [
+  const tabs = useMemo(() => {
+    const base = [
       { label: "Inicio", icon: <HomeIcon />, to: PRIVATEROUTES.HOMEPAGE },
-      {
-        label: "Pacientes",
-        icon: <PeopleAltIcon />,
-        to: PRIVATEROUTES.USERS_LIST,
-      },
       {
         label: "Analítica",
         icon: <AssessmentIcon />,
@@ -38,9 +36,17 @@ const TabBar = () => {
         icon: <PersonIcon />,
         to: PRIVATEROUTES.PROFILEPAGE,
       },
-    ],
-    [],
-  );
+    ];
+
+    if (canSeePatients) {
+      base.splice(1, 0, {
+        label: "Pacientes",
+        icon: <PeopleAltIcon />,
+        to: PRIVATEROUTES.USERS_LIST,
+      });
+    }
+    return base;
+  }, [canSeePatients]);
 
   // Calcula el índice activo según la URL
   const activeIndex = useMemo(() => {

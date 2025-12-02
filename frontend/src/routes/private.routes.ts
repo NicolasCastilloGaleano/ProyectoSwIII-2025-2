@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import type { RouteConfig } from "./route.interface";
+import { UserRole } from "@/apps/users/services/users.interfaces";
 
 export enum PRIVATEROUTES {
   ANALYTICS = "/insights",
@@ -57,6 +58,7 @@ export const PrivateRoutes: RouteConfig[] = [
   {
     element: lazy(() => import("@/apps/events/pages/CreateEvent")),
     path: PRIVATEROUTES.EVENTS_CREATE,
+    roles: [UserRole.ADMIN, UserRole.STAFF],
   },
   {
     element: lazy(() => import("@/apps/events/pages/EventDetail")),
@@ -65,22 +67,25 @@ export const PrivateRoutes: RouteConfig[] = [
   {
     element: lazy(() => import("@/apps/events/pages/EditEvent")),
     path: PRIVATEROUTES.EVENTS_EDIT,
+    roles: [UserRole.ADMIN, UserRole.STAFF],
   },
   {
     path: PRIVATEROUTES.USERS_BASE,
-    roles: ["admin", "user"],
     children: [
       {
         path: "list",
         element: lazy(() => import("@/apps/users/pages/ListUsers")),
+        roles: [UserRole.ADMIN, UserRole.STAFF],
       },
       {
         path: "create",
         element: lazy(() => import("@/apps/users/pages/ManageUser")),
+        roles: [UserRole.ADMIN, UserRole.STAFF],
       },
       {
         path: "edit/:id",
         element: lazy(() => import("@/apps/users/pages/ManageUser")),
+        roles: [UserRole.ADMIN, UserRole.STAFF, UserRole.USER],
       },
     ],
   },
